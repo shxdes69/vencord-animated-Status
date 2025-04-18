@@ -1,0 +1,34 @@
+.animated-status-btn,
+.animated-status-icon {
+    -webkit-app-region: no-drag;
+}
+
+.animated-status-icon {
+    color: var(--interactive-normal);
+}
+
+.animated-status-btn[class*="selected"] .animated-status-icon {
+    color: var(--interactive-active);
+}
+
+.animated-status-btn:hover .animated-status-icon {
+    color: var(--interactive-hover);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animated-status-icon-spinning {
+    animation: spin 4s linear infinite;
+}
+
+.animated-status-active {
+    color: var(--text-positive);
+}

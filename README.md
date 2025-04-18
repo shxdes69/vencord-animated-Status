@@ -1,65 +1,65 @@
-# Vencord Animated Status
-
-A plugin for Vencord that allows you to set animated/rotating custom status messages on Discord.
+## DISLAIMER
+ THIS PLUGIN MIGHT GET YOU BANNED FROM DISCORD SO USE IT AT YOUR OWN RISK. I'M NOT RESPONSIBLE FOR ANY BANS.
+ i'm a shit coder  so ignore the shit code .. if got any improvements  open issue or pull request. 
 
 ## Features
 
 ### Status Messages
-![Status Messages](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/img1.png)
+![Status Message](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview1.png)
+![Status Message Preview 2](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview2.png)
 
-- Add multiple status messages that will rotate automatically
-- Support for regular emojis and Discord/Nitro emojis
-- Easy to use interface with Add and Clear All options
-- Use Windows emoji picker (Win + .) or copy from unicode table
-- Discord/Nitro emoji: Type in Discord chat, select emoji, and copy the ID
+ - supports Discord/Nitro emojis ( i don't have nitro to test it normal emojis work tho )  can do an issue / pull request if got an idea i don't fw discord
+- preview your status before adding it ( cool shiii )
+- set different Discord statuses (Online, Idle, Do Not Disturb, Invisible)
+- organize messages with categories for better management  ![i hate it](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview4.png)
+
 
 ### Animation Settings
-![Animation Settings](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/img2.png)
+![Animation Settings](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview3.png)
 
-- Control animation start/stop
-- Customize update interval (in seconds) MINIMUM 10 SECS  hard coded to avoid any api abuse 
 
-- Option to randomize status message order
-- Simple and intuitive settings interface literally in vencord toolbox lol
+## Notes
 
-## How to Use?
+- The plugin is still in development, so expect some bugs and unfinished features.
+- The plugin is not compatible with the Vencordtoolbox Plugin we use the same patcher so yeah
 
-### Plugin Location
-![Plugin Location](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/img0.png)
+## Usage
 
-You can find the Animated Status plugin in your Vencord Toolbox under "Manage Status Animation"
+![placement](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview5.png)
 
-1. Add your desired status messages in the Messages tab
-2. Configure animation settings in the Settings tab
-3. Click "Start Animation" to begin rotating through your status messages
-4. Use the "Update Interval" slider to control how long each status is displayed
-5. Toggle "Randomize Order" if you want your status messages to appear in random order
+- Open the plugin settings by clicking on the clock in the top right corner of the Discord bar
 
 ## Installation
 
-First Time Setup
-Vencord is not modular, so you have to build from source to add custom plugins.
-Follow this guide for getting set up: https://docs.vencord.dev/installing/custom-plugins/
+### First Time Setup
+Vencord isn't modular, so you'll need to build from source to add custom plugins. Check out this guide to get started: https://docs.vencord.dev/installing/custom-plugins/
 
-How to install a plugin
-Direct your terminal to the userplugins folder, e.g. cd src/userplugins. If you're confused, read the guide above
-Each plugin post will contain a GitHub repo link, like https://github.com/shxdes69/vencord-animated-Status. Copy it
-Inside your terminal, run
+### How to Install the Plugin
+1. Open your terminal and head to the userplugins folder: `cd src/userplugins`  Might have to create it if not there
+2. Clone this repository:
 ```
-git clone https://github.com/...
+git clone https://github.com/shxdes69/vencord-animated-Status
 ```
+3. Rebuild Vencord following the instructions in the Vencord documentation.
 
-How to update plugins
-You will have to make sure to keep up with the latest changes to fix issues and get new features. You can update a plugin by directing your terminal to its folder (cd src/userplugins/animated-status) and running:
+### How to Update the Plugin
+To grab the latest features and bug fixes, update the plugin by running:
 ```
+cd src/userplugins/vencord-animated-Status
 git pull
 ```
-## note
+Then rebuild Vencord as needed.
 
-i don't plan on adding any more features to this plugin, i made it because i was bored it's a port from this guy's [BetterDiscord-Animated-Status](https://github.com/toluschr/BetterDiscord-Animated-Status)
+## Support
 
-## credits
+If you encounter any issues or have suggestions, please open an issue on the GitHub repository.
+can dm me on discord : shxdes0  id: 705545572299571220
 
-- [toluschr](https://github.com/toluschr) for the original plugin
-- [shxdes69](https://github.com/shxdes69) for the Vencord port
+## Credits
+
+- [toluschr](https://github.com/toluschr) - Creator of the original BetterDiscord plugin.
+
+
+
+
 
