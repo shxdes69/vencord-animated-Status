@@ -186,7 +186,22 @@ function StatusPreview({ status, label }: { status: StatusStep | null; label?: s
     );
 }
 
-function StatusCard({ status, onDelete }: { status: StatusStep; onDelete: () => void; }) {
+function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, onDragOver, onDrop, draggedIndex }: {
+    status: StatusStep;
+    onDelete: () => void;
+    onEdit: (updatedStatus: StatusStep) => void;
+    index: number;
+    onDragStart: (e: React.DragEvent, index: number) => void;
+    onDragEnd: () => void;
+    onDragOver: (e: React.DragEvent) => void;
+    onDrop: (e: React.DragEvent, index: number) => void;
+    draggedIndex: number | null;
+}) {
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [editText, setEditText] = React.useState(status.text || "");
+    const [editCategory, setEditCategory] = React.useState(status.category || "");
+    const [editStatus, setEditStatus] = React.useState(status.status);
+
     const statusColors = {
         online: "#43b581",
         idle: "#faa61a",
@@ -200,109 +215,204 @@ function StatusCard({ status, onDelete }: { status: StatusStep; onDelete: () => 
         dnd: "Do Not Disturb",
         invisible: "Invisible"
     };
+
+    const handleSaveEdit = () => {
+        const updatedStatus = {
+            ...status,
+            text: editText,
+            category: editCategory || undefined,
+            status: editStatus
+        };
+        onEdit(updatedStatus);
+        setIsEditing(false);
+    };
+
+    const handleCancelEdit = () => {
+        setEditText(status.text || "");
+        setEditCategory(status.category || "");
+        setEditStatus(status.status);
+        setIsEditing(false);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--background-modifier-accent)";
+    };
+
     return (
-        <div style={{
-            background: "var(--background-tertiary)",
-            padding: "12px",
-            borderRadius: "8px",
-            marginBottom: "8px",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
-            cursor: "pointer",
-            position: "relative",
-            border: "1px solid var(--background-modifier-accent)"
-        }}
+        <div
+            draggable={!isEditing}
+            onDragStart={e => onDragStart(e, index)}
+            onDragEnd={onDragEnd}
+            onDragOver={onDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={e => onDrop(e, index)}
+            style={{
+                background: "var(--background-tertiary)",
+                padding: "12px",
+                borderRadius: "8px",
+                marginBottom: "8px",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease",
+                cursor: isEditing ? "default" : "grab",
+                position: "relative",
+                border: "1px solid var(--background-modifier-accent)",
+                opacity: draggedIndex === index ? 0.6 : 1,
+                transform: draggedIndex === index ? "scale(0.98)" : "",
+                boxShadow: draggedIndex === index ? "0 0 8px rgba(0, 0, 0, 0.2)" : ""
+            }}
             onMouseEnter={e => {
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
-                e.currentTarget.style.borderColor = "var(--brand-experiment-30a)";
+                if (!isEditing) {
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+                    e.currentTarget.style.borderColor = "var(--brand-experiment-30a)";
+                }
             }}
             onMouseLeave={e => {
-                e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "";
-                e.currentTarget.style.borderColor = "var(--background-modifier-accent)";
+                if (!isEditing) {
+                    e.currentTarget.style.transform = "";
+                    e.currentTarget.style.boxShadow = "";
+                    e.currentTarget.style.borderColor = "var(--background-modifier-accent)";
+                }
             }}
         >
-            <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px" }}>
-                {status.emoji_name && (
+            {isEditing ? (
+                <div style={{ padding: "8px" }}>
+                    <TextInput
+                        placeholder="Status text"
+                        value={editText}
+                        onChange={setEditText}
+                        style={{ marginBottom: "8px" }}
+                    />
+                    <TextInput
+                        placeholder="Category (optional)"
+                        value={editCategory}
+                        onChange={setEditCategory}
+                        style={{ marginBottom: "8px" }}
+                    />
+                    <StatusSelector value={editStatus} onChange={setEditStatus} />
+                    <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginTop: "12px" }}>
+                        <Button
+                            size={Button.Sizes.SMALL}
+                            color={Button.Colors.BRAND}
+                            onClick={handleSaveEdit}
+                        >
+                            Save
+                        </Button>
+                        <Button
+                            size={Button.Sizes.SMALL}
+                            color={Button.Colors.PRIMARY}
+                            onClick={handleCancelEdit}
+                        >
+                            Cancel
+                        </Button>
+                    </Flex>
+                </div>
+            ) : (
+                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px" }}>
                     <div style={{
-                        fontSize: "24px",
-                        width: "32px",
-                        height: "32px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "var(--background-secondary)",
-                        borderRadius: "50%"
+                        fontSize: "16px",
+                        color: "var(--interactive-normal)",
+                        cursor: "grab",
+                        marginRight: "-4px"
                     }}>
-                        {status.emoji_id ? (
-                            <img
-                                src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.png`}
-                                alt={status.emoji_name}
-                                style={{ width: "24px", height: "24px" }}
-                            />
-                        ) : status.emoji_name}
+                        ⋮⋮
                     </div>
-                )}
-                <div style={{ flexGrow: 1, overflow: "hidden" }}>
-                    <div style={{
-                        color: "var(--header-primary)",
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis"
-                    }}>
-                        {status.text || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Emoji Only</span>}
-                    </div>
-                    <div style={{
-                        display: "flex",
-                        gap: "8px",
-                        marginTop: "2px",
-                        alignItems: "center"
-                    }}>
-                        {status.category && (
-                            <div style={{
-                                color: "var(--text-muted)",
-                                fontSize: "12px",
-                                fontWeight: 400,
-                                textTransform: "capitalize"
-                            }}>
-                                Category: {status.category}
-                            </div>
-                        )}
-                        {status.status && (
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                fontSize: "12px",
-                                color: "var(--text-muted)"
-                            }}>
+                    {status.emoji_name && (
+                        <div style={{
+                            fontSize: "24px",
+                            width: "32px",
+                            height: "32px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "var(--background-secondary)",
+                            borderRadius: "50%"
+                        }}>
+                            {status.emoji_id ? (
+                                <img
+                                    src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.png`}
+                                    alt={status.emoji_name}
+                                    style={{ width: "24px", height: "24px" }}
+                                />
+                            ) : status.emoji_name}
+                        </div>
+                    )}
+                    <div style={{ flexGrow: 1, overflow: "hidden" }}>
+                        <div style={{
+                            color: "var(--header-primary)",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis"
+                        }}>
+                            {status.text || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Emoji Only</span>}
+                        </div>
+                        <div style={{
+                            display: "flex",
+                            gap: "8px",
+                            marginTop: "2px",
+                            alignItems: "center"
+                        }}>
+                            {status.category && (
                                 <div style={{
-                                    width: "8px",
-                                    height: "8px",
-                                    borderRadius: "50%",
-                                    backgroundColor: statusColors[status.status]
-                                }}></div>
-                                {statusNames[status.status]}
-                            </div>
-                        )}
+                                    color: "var(--text-muted)",
+                                    fontSize: "12px",
+                                    fontWeight: 400,
+                                    textTransform: "capitalize"
+                                }}>
+                                    Category: {status.category}
+                                </div>
+                            )}
+                            {status.status && (
+                                <div style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    fontSize: "12px",
+                                    color: "var(--text-muted)"
+                                }}>
+                                    <div style={{
+                                        width: "8px",
+                                        height: "8px",
+                                        borderRadius: "50%",
+                                        backgroundColor: statusColors[status.status]
+                                    }}></div>
+                                    {statusNames[status.status]}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div data-tooltip-text="Delete Status">
-                    <Button
-                        size={Button.Sizes.SMALL}
-                        color={Button.Colors.RED}
-                        onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            onDelete();
-                        }}
-                        style={{ padding: "4px 8px", minWidth: "unset" }}
-                    >
-                        ×
-                    </Button>
-                </div>
-            </Flex>
+                    <div style={{ display: "flex", gap: "4px" }}>
+                        <div data-tooltip-text="Edit Status">
+                            <Button
+                                size={Button.Sizes.SMALL}
+                                color={Button.Colors.PRIMARY}
+                                onClick={(e: React.MouseEvent) => {
+                                    e.stopPropagation();
+                                    setIsEditing(true);
+                                }}
+                                style={{ padding: "4px 8px", minWidth: "unset" }}
+                            >
+                                ✎
+                            </Button>
+                        </div>
+                        <div data-tooltip-text="Delete Status">
+                            <Button
+                                size={Button.Sizes.SMALL}
+                                color={Button.Colors.RED}
+                                onClick={(e: React.MouseEvent) => {
+                                    e.stopPropagation();
+                                    onDelete();
+                                }}
+                                style={{ padding: "4px 8px", minWidth: "unset" }}
+                            >
+                                ×
+                            </Button>
+                        </div>
+                    </div>
+                </Flex>
+            )}
         </div>
     );
 }
@@ -706,6 +816,88 @@ function AnimatedStatusSettings() {
         if (activeCategory === null) return animation;
         return animation.filter(step => step.category === activeCategory);
     }, [animation, activeCategory]);
+    const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = "move";
+        try {
+            const dragImage = document.createElement("div");
+            dragImage.style.position = "absolute";
+            dragImage.style.top = "-1000px";
+            dragImage.style.left = "-1000px";
+            dragImage.style.width = "100px";
+            dragImage.style.height = "20px";
+            dragImage.style.background = "transparent";
+            dragImage.textContent = "Dragging status...";
+            document.body.appendChild(dragImage);
+            e.dataTransfer.setDragImage(dragImage, 0, 0);
+            e.dataTransfer.setData("text/plain", index.toString());
+        } catch (err) {
+            console.error("Failed to create drag image:", err);
+        }
+    };
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        const dragImages = document.querySelectorAll('div[style*="position: absolute"][style*="top: -1000px"][style*="left: -1000px"]');
+        dragImages.forEach(img => {
+            if (img.textContent === "Dragging status...") {
+                document.body.removeChild(img);
+            }
+        });
+    };
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.boxShadow = "0 0 0 2px var(--brand-experiment)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+        }
+    };
+    const handleDragLeave = (e: React.DragEvent) => {
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.boxShadow = "";
+            e.currentTarget.style.transform = "";
+        }
+    };
+    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+        e.preventDefault();
+        if (draggedIndex === null || draggedIndex === dropIndex) return;
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.boxShadow = "";
+            e.currentTarget.style.transform = "";
+        }
+        const actualDraggedIndex = activeCategory === null
+            ? draggedIndex
+            : animation.findIndex(step => step === filteredAnimation[draggedIndex]);
+
+        const actualDropIndex = activeCategory === null
+            ? dropIndex
+            : animation.findIndex(step => step === filteredAnimation[dropIndex]);
+
+        if (actualDraggedIndex === -1 || actualDropIndex === -1) return;
+        const newAnimation = [...animation];
+        const [draggedItem] = newAnimation.splice(actualDraggedIndex, 1);
+        newAnimation.splice(actualDropIndex, 0, draggedItem);
+        setAnimation(newAnimation);
+        settings.store.animation = JSON.stringify(newAnimation);
+        setDraggedIndex(null);
+        Toasts.show({
+            message: "Status order updated",
+            type: Toasts.Type.SUCCESS,
+            id: Toasts.genId()
+        });
+    };
+
+    const handleEditStatus = (index: number, updatedStatus: StatusStep) => {
+        const actualIndex = activeCategory === null
+            ? index
+            : animation.findIndex(step => step === filteredAnimation[index]);
+        if (actualIndex === -1) return;
+        const newAnimation = [...animation];
+        newAnimation[actualIndex] = updatedStatus;
+        setAnimation(newAnimation);
+        settings.store.animation = JSON.stringify(newAnimation);
+    };
     const isFirstMount = React.useRef(true);
     const previousCategory = React.useRef(activeCategory);
     React.useEffect(() => {
@@ -1262,13 +1454,34 @@ function AnimatedStatusSettings() {
                                 <div style={{
                                     display: "flex",
                                     flexDirection: "column",
-                                    gap: "8px"
+                                    gap: "8px",
+                                    position: "relative"
                                 }}>
+                                    {draggedIndex !== null && (
+                                        <div style={{
+                                            position: "absolute",
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            background: "rgba(0, 0, 0, 0.1)",
+                                            borderRadius: "8px",
+                                            zIndex: 1,
+                                            pointerEvents: "none"
+                                        }} />
+                                    )}
                                     {filteredAnimation.map((step, i) => (
                                         <StatusCard
                                             key={i}
+                                            index={i}
                                             status={step}
                                             onDelete={() => deleteStep(animation.indexOf(step))}
+                                            onEdit={updatedStatus => handleEditStatus(i, updatedStatus)}
+                                            onDragStart={handleDragStart}
+                                            onDragEnd={handleDragEnd}
+                                            onDragOver={handleDragOver}
+                                            onDrop={handleDrop}
+                                            draggedIndex={draggedIndex}
                                         />
                                     ))}
                                 </div>
