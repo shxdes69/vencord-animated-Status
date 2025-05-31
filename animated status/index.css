@@ -1,6 +1,7 @@
 .animated-status-btn,
 .animated-status-icon {
     -webkit-app-region: no-drag;
+    position: relative;
 }
 
 .animated-status-icon {

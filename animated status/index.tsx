@@ -1952,79 +1952,36 @@ function TabBar({ activeTab, onChange }: { activeTab: string; onChange: (tab: st
 
 const HeaderBarIcon = findComponentByCodeLazy(".HEADER_BAR_BADGE_TOP:", '.iconBadge,"top"');
 
-function StatusPopout(onClose: () => void) {
-    const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as unknown as {
-        stop?: () => void;
-        startAnimation?: (category?: string) => Promise<void>;
-        isRunning?: () => boolean;
-        openSettings?: () => void;
+function StatusPopoutButton() {
+    const [show, setShow] = useState(false);
+
+    const handleClick = () => {
+        const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as unknown as {
+            stop?: () => void;
+            startAnimation?: (category?: string) => Promise<void>;
+        };
+
+        if (statusInterval) {
+            plugin.stop?.();
+        } else {
+            openModal(props => (
+                <ModalRoot {...props} size={ModalSize.MEDIUM}>
+                    <ModalContent>
+                        <AnimatedStatusSettings />
+                    </ModalContent>
+                </ModalRoot>
+            ));
+        }
     };
 
-    const isRunning = !!statusInterval;
-
     return (
-        <Menu.Menu
-            navId="animated-status"
-            onClose={onClose}
-        >
-            <Menu.MenuItem
-                id="animated-status-toggle"
-                label={isRunning ? "Stop Animation" : "Start Animation"}
-                action={() => {
-                    if (isRunning) {
-                        plugin.stop?.();
-                    } else {
-                        plugin.startAnimation?.();
-                    }
-                    onClose();
-                }}
-            />
-            <Menu.MenuItem
-                id="animated-status-settings"
-                label="Animation Settings"
-                action={() => {
-                    if (plugin.openSettings) {
-                        plugin.openSettings();
-                    } else {
-                        openModal(props => (
-                            <ModalRoot {...props} size={ModalSize.MEDIUM}>
-                                <ModalContent>
-                                    <AnimatedStatusSettings />
-                                </ModalContent>
-                            </ModalRoot>
-                        ));
-                    }
-                    onClose();
-                }}
-            />
-            <Menu.MenuSeparator />
-            <Menu.MenuGroup label="Categories">
-                {getUniqueCategories(safeParseJSON(settings.store.animation, [])).length > 0 ? (
-                    getUniqueCategories(safeParseJSON(settings.store.animation, [])).map(category => (
-                        <Menu.MenuItem
-                            id={`animated-status-category-${category}`}
-                            key={`animated-status-category-${category}`}
-                            label={category}
-                            action={() => {
-                                if (plugin.stop && plugin.startAnimation) {
-                                    plugin.stop();
-                                    setTimeout(() => {
-                                        plugin.startAnimation?.(category);
-                                        onClose();
-                                    }, 100);
-                                }
-                            }}
-                        />
-                    ))
-                ) : (
-                    <Menu.MenuItem
-                        id="animated-status-no-categories"
-                        label="No categories defined"
-                        disabled={true}
-                    />
-                )}
-            </Menu.MenuGroup>
-        </Menu.Menu>
+        <HeaderBarIcon
+            className="animated-status-btn"
+            onClick={handleClick}
+            tooltip={statusInterval ? "Stop Animation" : "Animated Status Settings"}
+            icon={() => StatusPopoutIcon(show)}
+            selected={statusInterval ? true : false}
+        />
     );
 }
 
@@ -2038,31 +1995,6 @@ function StatusPopoutIcon(isShown: boolean) {
         <svg width="24" height="24" viewBox="0 0 24 24" className={className}>
             <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 5.524 4.477 10 10 10s10-4.476 10-10c0-5.523-4.477-10-10-10zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z" />
         </svg>
-    );
-}
-
-function StatusPopoutButton() {
-    const [show, setShow] = useState(false);
-
-    return (
-        <Popout
-            position="bottom"
-            align="right"
-            animation={Popout.Animation.NONE}
-            shouldShow={show}
-            onRequestClose={() => setShow(false)}
-            renderPopout={() => StatusPopout(() => setShow(false))}
-        >
-            {(_, { isShown }) => (
-                <HeaderBarIcon
-                    className="animated-status-btn"
-                    onClick={() => setShow(v => !v)}
-                    tooltip={isShown ? null : "Animated Status"}
-                    icon={() => StatusPopoutIcon(isShown)}
-                    selected={isShown}
-                />
-            )}
-        </Popout>
     );
 }
 
