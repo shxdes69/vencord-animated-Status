@@ -1,14 +1,13 @@
+## IMPORTANT 
 
-## ⚠️ IMPORTANT: DO NOT USE WITH VENCORD TOOLBOX  
-**You must NOT have Vencord Toolbox enabled.**  
-**Don’t check plugin settings — instead, look at the top right of your Discord window. That’s where the plugin icon appears.**
+**Don’t check plugin settings  — instead, look at the Mute & Deafen area you'll find it icon**
 **MUST ONLY HAVE THE animated status FOLDER with index.tsx & css OTHERWISE WILL THROW ERRORS**
-**Contact on Discord: shxdes0**
-
+**Contact on Discord: shxdes0 IF got any Questions or Technical Issues**
+** Star please ?**
 ---
 
 ## DISCLAIMER  
-**THIS PLUGIN MIGHT GET YOU BANNED FROM DISCORD SO USE IT AT YOUR OWN RISK. I'M NOT RESPONSIBLE FOR ANY BANS.**  
+**THIS PLUGIN MIGHT GET YOU BANNED FROM DISCORD SO USE IT AT YOUR OWN RISK. I'M NOT RESPONSIBLE FOR ANY BANS. (never happened before though) **  
 I'm a shit coder, so ignore the shit code. If you’ve got any improvements, open an issue or pull request.
 
 ---
@@ -38,6 +37,8 @@ I'm a shit coder, so ignore the shit code. If you’ve got any improvements, ope
 ---
 
 ## Usage
+
+Changed now  check the Mute & Deafen area  
 
 ![placement](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview5.png)
 
@@ -99,4 +100,4 @@ You can DM me on Discord: `shxdes0` (ID: `705545572299571220`)
 
 ## Credits
 
-- [toluschr](https://github.com/toluschr) – Creator of the original BetterDiscord plugin.
+- [toluschr](https://github.com/toluschr) – Creator of the original BetterDiscord plugin. Got Inspired By It
