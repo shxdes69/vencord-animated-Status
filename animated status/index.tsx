@@ -12,9 +12,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Logger } from "@utils/Logger";
 import { ModalContent, ModalRoot, ModalSize, openModal } from "@utils/modal";
 import definePlugin, { OptionType } from "@utils/types";
-import { findComponentByCodeLazy } from "@webpack";
-import { Button, Flex, Forms, IconUtils, Menu, Popout, React, Slider, Switch, TextInput, Toasts, UserStore, useState } from "@webpack/common";
-import type { ReactNode } from "react";
+import { Button, Flex, Forms, IconUtils, Menu, Popout, React, Slider, Switch, TextInput, Toasts, Tooltip, UserStore } from "@webpack/common";
 
 const logger = new Logger("AnimatedStatus");
 
@@ -60,8 +58,6 @@ function getUniqueCategories(steps: StatusStep[]): string[] {
 function StatusPreview({ status, label }: { status: StatusStep | null; label?: string; }) {
     if (!status) return null;
 
-    const [isHovered, setIsHovered] = React.useState(false);
-
     const currentUser = UserStore.getCurrentUser();
     const avatarURL = currentUser?.getAvatarURL?.() || currentUser?.avatar
         ? `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png?size=128`
@@ -76,112 +72,85 @@ function StatusPreview({ status, label }: { status: StatusStep | null; label?: s
         invisible: "#747f8d"
     };
 
-    const statusIcons = {
-        online: "●",
-        idle: "◐",
-        dnd: "⊝",
-        invisible: "○"
-    };
-
     return (
-        <div
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            style={{
-                marginBottom: "20px",
-                padding: "20px",
-                borderRadius: "16px",
-                background: "var(--background-secondary)",
-                border: "1px solid " + (isHovered ? "var(--brand-experiment-30a)" : "var(--background-modifier-accent)"),
-                boxShadow: isHovered ? "0 8px 24px rgba(0, 0, 0, 0.15)" : "0 2px 10px rgba(0, 0, 0, 0.08)",
-                transform: isHovered ? "translateY(-3px) scale(1.01)" : "none",
-                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
-            }}
-        >
+        <div style={{
+            marginBottom: "16px",
+            padding: "16px",
+            borderRadius: "8px",
+            background: "var(--background-secondary)",
+            border: "2px solid var(--background-modifier-selected)"
+        }}>
             {label && (
                 <div style={{
-                    fontSize: "12px",
-                    marginBottom: "10px",
-                    color: "var(--header-secondary)",
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px"
+                    fontSize: "14px",
+                    marginBottom: "12px",
+                    color: "var(--white-500)",
+                    fontWeight: 600
                 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor" />
-                    </svg>
                     {label}
                 </div>
             )}
-            <div style={{
-                background: "var(--background-secondary)",
-                borderRadius: "12px",
-                padding: "16px",
-                border: "1px solid var(--background-tertiary)",
-                transition: "all 0.2s ease",
-                transform: isHovered ? "translateY(-2px)" : "none",
-                boxShadow: isHovered ? "0 4px 12px rgba(0, 0, 0, 0.1)" : "none"
-            }}>
-                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px", marginBottom: "12px" }}>
+            <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px" }}>
+                <div style={{ position: "relative" }}>
+                    <img
+                        src={avatarURL}
+                        alt={username}
+                        style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%"
+                        }}
+                    />
+                    {status.status && (
+                        <div style={{
+                            position: "absolute",
+                            bottom: "-2px",
+                            right: "-2px",
+                            width: "14px",
+                            height: "14px",
+                            borderRadius: "50%",
+                            backgroundColor: statusColors[status.status] || statusColors.online,
+                            border: "2px solid var(--background-secondary)"
+                        }}>
+                        </div>
+                    )}
+                </div>
+                <div style={{ flex: 1 }}>
                     <div style={{
-                        position: "relative",
-                        transition: "transform 0.2s ease",
-                        transform: isHovered ? "scale(1.05)" : "scale(1)"
+                        color: "var(--white-500)",
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        marginBottom: "4px"
                     }}>
-                        <img
-                            src={avatarURL}
-                            alt={username}
-                            style={{
-                                width: "40px",
-                                height: "40px",
-                                borderRadius: "50%",
-                                border: "2px solid var(--background-accent)"
-                            }}
-                        />
-                        {status.status && (
-                            <div style={{
-                                position: "absolute",
-                                bottom: "-2px",
-                                right: "-2px",
-                                width: "16px",
-                                height: "16px",
-                                borderRadius: "50%",
-                                backgroundColor: statusColors[status.status] || statusColors.online,
-                                border: "2px solid var(--background-floating)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "10px",
-                                color: "var(--text-normal)"
-                            }}>
-                                {statusIcons[status.status]}
-                            </div>
-                        )}
+                        {displayName}
                     </div>
                     <div style={{
+                        color: "var(--white-500)",
+                        fontSize: "14px",
                         display: "flex",
-                        flexDirection: "column",
-                        gap: "4px"
+                        alignItems: "center",
+                        gap: "6px"
                     }}>
-                        <div style={{
-                            color: "var(--header-primary)",
-                            fontSize: "16px",
-                            fontWeight: 600
-                        }}>
-                            {displayName}
-                        </div>
-                        <div style={{
-                            color: "var(--text-normal)",
-                            fontSize: "14px"
-                        }}>
-                            {status.text || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>No custom status</span>}
-                        </div>
+                        {status.emoji_name && (
+                            <span style={{ fontSize: "16px" }}>
+                                {status.emoji_id ? (
+                                    <img
+                                        src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.png`}
+                                        alt={status.emoji_name}
+                                        style={{ width: "16px", height: "16px", verticalAlign: "middle" }}
+                                    />
+                                ) : status.emoji_name}
+                            </span>
+                        )}
+                        {status.text || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>No custom status</span>}
                     </div>
-                </Flex>
-            </div>
+                    {status.category && (
+                        <div className="vc-animated-status-category-pill active" style={{ marginTop: "6px" }}>
+                            {status.category}
+                        </div>
+                    )}
+                </div>
+            </Flex>
         </div>
     );
 }
@@ -201,13 +170,6 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
     const [editText, setEditText] = React.useState(status.text || "");
     const [editCategory, setEditCategory] = React.useState(status.category || "");
     const [editStatus, setEditStatus] = React.useState(status.status);
-
-    const statusColors = {
-        online: "#43b581",
-        idle: "#faa61a",
-        dnd: "#f04747",
-        invisible: "#747f8d"
-    };
 
     const statusNames = {
         online: "Online",
@@ -234,182 +196,160 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
         setIsEditing(false);
     };
 
-    const handleDragLeave = (e: React.DragEvent) => {
-        e.preventDefault();
-        (e.currentTarget as HTMLElement).style.borderColor = "var(--background-modifier-accent)";
-    };
-
     return (
         <div
+            className={`vc-animated-status-item ${draggedIndex === index ? 'dragging' : ''}`}
             draggable={!isEditing}
             onDragStart={e => onDragStart(e, index)}
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
-            onDragLeave={handleDragLeave}
             onDrop={e => onDrop(e, index)}
-            style={{
-                background: "var(--background-tertiary)",
-                padding: "12px",
-                borderRadius: "8px",
-                marginBottom: "8px",
-                transition: "transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease",
-                cursor: isEditing ? "default" : "grab",
-                position: "relative",
-                border: "1px solid var(--background-modifier-accent)",
-                opacity: draggedIndex === index ? 0.6 : 1,
-                transform: draggedIndex === index ? "scale(0.98)" : "",
-                boxShadow: draggedIndex === index ? "0 0 8px rgba(0, 0, 0, 0.2)" : ""
-            }}
-            onMouseEnter={e => {
-                if (!isEditing) {
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
-                    e.currentTarget.style.borderColor = "var(--brand-experiment-30a)";
-                }
-            }}
-            onMouseLeave={e => {
-                if (!isEditing) {
-                    e.currentTarget.style.transform = "";
-                    e.currentTarget.style.boxShadow = "";
-                    e.currentTarget.style.borderColor = "var(--background-modifier-accent)";
-                }
-            }}
         >
             {isEditing ? (
-                <div style={{ padding: "8px" }}>
-                    <TextInput
-                        placeholder="Status text"
-                        value={editText}
-                        onChange={setEditText}
-                        style={{ marginBottom: "8px" }}
-                    />
-                    <TextInput
-                        placeholder="Category (optional)"
-                        value={editCategory}
-                        onChange={setEditCategory}
-                        style={{ marginBottom: "8px" }}
-                    />
-                    <StatusSelector value={editStatus} onChange={setEditStatus} />
-                    <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginTop: "12px" }}>
+                <div className="vc-animated-status-card" style={{ padding: "16px", margin: 0 }}>
+                    <div style={{ marginBottom: "16px" }}>
+                        <Forms.FormTitle style={{ marginBottom: "8px", color: "var(--white-500)" }}>
+                            Edit Status Message
+                        </Forms.FormTitle>
+                        <TextInput
+                            className="vc-animated-status-input"
+                            placeholder="Status text"
+                            value={editText}
+                            onChange={setEditText}
+                            style={{ marginBottom: "12px" }}
+                        />
+                        <TextInput
+                            className="vc-animated-status-input"
+                            placeholder="Category (optional)"
+                            value={editCategory}
+                            onChange={setEditCategory}
+                            style={{ marginBottom: "12px" }}
+                        />
+                        <StatusSelector value={editStatus} onChange={setEditStatus} />
+                    </div>
+                    <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "12px", justifyContent: "flex-end" }}>
                         <Button
-                            size={Button.Sizes.SMALL}
-                            color={Button.Colors.BRAND}
-                            onClick={handleSaveEdit}
-                        >
-                            Save
-                        </Button>
-                        <Button
+                            className="vc-animated-status-button secondary"
                             size={Button.Sizes.SMALL}
                             color={Button.Colors.PRIMARY}
                             onClick={handleCancelEdit}
                         >
                             Cancel
                         </Button>
+                        <Button
+                            className="vc-animated-status-button primary"
+                            size={Button.Sizes.SMALL}
+                            color={Button.Colors.BRAND}
+                            onClick={handleSaveEdit}
+                        >
+                            Save Changes
+                        </Button>
                     </Flex>
                 </div>
             ) : (
-                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px" }}>
+                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "16px", padding: "4px" }}>
                     <div style={{
-                        fontSize: "16px",
+                        fontSize: "18px",
                         color: "var(--interactive-normal)",
                         cursor: "grab",
-                        marginRight: "-4px"
+                        opacity: 0.6,
+                        transition: "opacity 0.2s ease"
                     }}>
                         ⋮⋮
                     </div>
                     {status.emoji_name && (
                         <div style={{
-                            fontSize: "24px",
-                            width: "32px",
-                            height: "32px",
+                            fontSize: "28px",
+                            width: "40px",
+                            height: "40px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             background: "var(--background-secondary)",
-                            borderRadius: "50%"
+                            borderRadius: "50%",
+                            border: "2px solid var(--background-modifier-accent)",
+                            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
                         }}>
                             {status.emoji_id ? (
                                 <img
                                     src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.png`}
                                     alt={status.emoji_name}
-                                    style={{ width: "24px", height: "24px" }}
+                                    style={{ width: "28px", height: "28px" }}
                                 />
                             ) : status.emoji_name}
                         </div>
                     )}
-                    <div style={{ flexGrow: 1, overflow: "hidden" }}>
+                    <div style={{ flexGrow: 1, overflow: "hidden", minWidth: 0 }}>
                         <div style={{
-                            color: "var(--header-primary)",
-                            fontSize: "14px",
-                            fontWeight: 500,
+                            color: "var(--white-500)",
+                            fontSize: "15px",
+                            fontWeight: 600,
                             whiteSpace: "nowrap",
                             overflow: "hidden",
-                            textOverflow: "ellipsis"
+                            textOverflow: "ellipsis",
+                            marginBottom: "4px"
                         }}>
                             {status.text || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Emoji Only</span>}
                         </div>
                         <div style={{
                             display: "flex",
-                            gap: "8px",
-                            marginTop: "2px",
-                            alignItems: "center"
+                            gap: "12px",
+                            alignItems: "center",
+                            flexWrap: "wrap"
                         }}>
                             {status.category && (
-                                <div style={{
-                                    color: "var(--text-muted)",
-                                    fontSize: "12px",
-                                    fontWeight: 400,
-                                    textTransform: "capitalize"
-                                }}>
-                                    Category: {status.category}
+                                <div className="vc-animated-status-category-pill" style={{ margin: 0 }}>
+                                    {status.category}
                                 </div>
                             )}
                             {status.status && (
-                                <div style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                    fontSize: "12px",
-                                    color: "var(--text-muted)"
-                                }}>
-                                    <div style={{
-                                        width: "8px",
-                                        height: "8px",
-                                        borderRadius: "50%",
-                                        backgroundColor: statusColors[status.status]
-                                    }}></div>
+                                <div className={`vc-animated-status-indicator ${status.status}`}>
                                     {statusNames[status.status]}
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div style={{ display: "flex", gap: "4px" }}>
-                        <div data-tooltip-text="Edit Status">
-                            <Button
-                                size={Button.Sizes.SMALL}
-                                color={Button.Colors.PRIMARY}
-                                onClick={(e: React.MouseEvent) => {
-                                    e.stopPropagation();
-                                    setIsEditing(true);
-                                }}
-                                style={{ padding: "4px 8px", minWidth: "unset" }}
-                            >
-                                ✎
-                            </Button>
-                        </div>
-                        <div data-tooltip-text="Delete Status">
-                            <Button
-                                size={Button.Sizes.SMALL}
-                                color={Button.Colors.RED}
-                                onClick={(e: React.MouseEvent) => {
-                                    e.stopPropagation();
-                                    onDelete();
-                                }}
-                                style={{ padding: "4px 8px", minWidth: "unset" }}
-                            >
-                                ×
-                            </Button>
-                        </div>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <Tooltip text="Edit Status">
+                            {({ onMouseEnter, onMouseLeave }) => (
+                                <Button
+                                    className="vc-animated-status-button secondary"
+                                    size={Button.Sizes.SMALL}
+                                    color={Button.Colors.PRIMARY}
+                                    onClick={(e: React.MouseEvent) => {
+                                        e.stopPropagation();
+                                        setIsEditing(true);
+                                    }}
+                                    onMouseEnter={onMouseEnter}
+                                    onMouseLeave={onMouseLeave}
+                                    style={{ padding: "6px 10px", minWidth: "unset" }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                    </svg>
+                                </Button>
+                            )}
+                        </Tooltip>
+                        <Tooltip text="Delete Status">
+                            {({ onMouseEnter, onMouseLeave }) => (
+                                <Button
+                                    className="vc-animated-status-button danger"
+                                    size={Button.Sizes.SMALL}
+                                    color={Button.Colors.RED}
+                                    onClick={(e: React.MouseEvent) => {
+                                        e.stopPropagation();
+                                        onDelete();
+                                    }}
+                                    onMouseEnter={onMouseEnter}
+                                    onMouseLeave={onMouseLeave}
+                                    style={{ padding: "6px 10px", minWidth: "unset" }}
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                                    </svg>
+                                </Button>
+                            )}
+                        </Tooltip>
                     </div>
                 </Flex>
             )}
@@ -427,47 +367,55 @@ function CategorySelector({
     onCategoryChange: (category: string | null) => void;
 }) {
     return (
-        <div style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-            marginBottom: "16px"
-        }}>
-            <Button
-                color={activeCategory === null ? Button.Colors.BRAND : Button.Colors.PRIMARY}
-                size={Button.Sizes.SMALL}
-                onClick={() => onCategoryChange(null)}
-                style={{
-                    borderRadius: "16px",
-                    padding: "4px 12px",
-                    minWidth: "unset",
-                    textTransform: "capitalize",
-                    fontWeight: 600
-                }}
-            >
-                All
-            </Button>
-            {categories.map(category => (
-                <Button
-                    key={category}
-                    color={activeCategory === category ? Button.Colors.BRAND : Button.Colors.PRIMARY}
-                    size={Button.Sizes.SMALL}
-                    onClick={() => onCategoryChange(category)}
-                    style={{
-                        borderRadius: "16px",
-                        padding: "4px 12px",
-                        minWidth: "unset",
-                        textTransform: "capitalize",
-                        fontWeight: 600,
-                        color: "var(--interactive-active)",
-                        background: activeCategory === category
-                            ? "var(--brand-experiment)"
-                            : "var(--background-tertiary)"
-                    }}
+        <div className="vc-animated-status-card" style={{ marginBottom: "20px" }}>
+            <div className="vc-animated-status-section-header" style={{ marginBottom: "16px" }}>
+                <svg className="vc-animated-status-section-icon" viewBox="0 0 24 24" fill="none">
+                    <path d="M10 4H4c-1.11 0-2 .89-2 2v3h2V6h4V4zm6 0v2h4v3h2V6c0-1.11-.89-2-2-2h-4zm-6 15H4v-3H2v3c0 1.11.89 2 2 2h4v-2zm6 0v2h4c1.11 0 2-.89 2-2v-3h-2v3h-4z" fill="currentColor" />
+                </svg>
+                <h3 className="vc-animated-status-section-title">Filter by Category</h3>
+            </div>
+            <div style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                alignItems: "center"
+            }}>
+                <div
+                    className={`vc-animated-status-category-pill ${activeCategory === null ? 'active' : ''}`}
+                    onClick={() => onCategoryChange(null)}
+                    style={{ cursor: "pointer" }}
                 >
-                    {category}
-                </Button>
-            ))}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    All Categories
+                </div>
+                {categories.map(category => (
+                    <div
+                        key={category}
+                        className={`vc-animated-status-category-pill ${activeCategory === category ? 'active' : ''}`}
+                        onClick={() => onCategoryChange(category)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                        </svg>
+                        {category}
+                    </div>
+                ))}
+                {categories.length === 0 && (
+                    <div style={{
+                        color: "var(--text-muted)",
+                        fontStyle: "italic",
+                        padding: "8px 16px",
+                        background: "var(--background-tertiary)",
+                        borderRadius: "8px",
+                        border: "1px dashed var(--background-modifier-accent)"
+                    }}>
+                        No categories defined yet. Add statuses with categories to see them here.
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -484,53 +432,69 @@ function StatusSelector({ value, onChange }: {
     ] as const;
 
     return (
-        <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            marginBottom: "16px"
-        }}>
-            <Forms.FormTitle>Status</Forms.FormTitle>
-            <div style={{
+        <div style={{ marginBottom: "16px" }}>
+            <Forms.FormTitle style={{
+                marginBottom: "12px",
+                color: "var(--white-500)",
+                fontSize: "14px",
+                fontWeight: 600,
                 display: "flex",
-                gap: "8px",
-                flexWrap: "wrap"
+                alignItems: "center",
+                gap: "8px"
+            }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+                Discord Status
+            </Forms.FormTitle>
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                gap: "8px"
             }}>
                 {statuses.map(status => (
                     <div
                         key={status.id}
+                        className={`vc-animated-status-indicator ${status.id} ${value === status.id ? 'active' : ''}`}
                         onClick={() => onChange(status.id as "online" | "idle" | "dnd" | "invisible")}
                         style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "8px 12px",
-                            borderRadius: "4px",
                             cursor: "pointer",
-                            backgroundColor: value === status.id ? "var(--background-modifier-selected)" : "var(--background-secondary)",
-                            border: value === status.id ? `1px solid ${status.color}` : "1px solid transparent",
-                            transition: "all 0.2s ease"
+                            padding: "12px 16px",
+                            borderRadius: "8px",
+                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                            transform: value === status.id ? "translateY(-1px)" : "none",
+                            boxShadow: value === status.id ? "0 4px 12px rgba(0, 0, 0, 0.15)" : "none",
+                            border: value === status.id ? `2px solid ${status.color}` : "2px solid transparent"
                         }}
                     >
                         <div style={{
-                            width: "12px",
-                            height: "12px",
-                            borderRadius: "50%",
-                            backgroundColor: status.color,
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: "10px",
-                            fontWeight: "bold"
+                            gap: "8px",
+                            justifyContent: "center"
                         }}>
-                            {status.icon}
-                        </div>
-                        <div style={{
-                            fontSize: "14px",
-                            color: value === status.id ? "var(--header-primary)" : "var(--text-normal)"
-                        }}>
-                            {status.name}
+                            <div style={{
+                                width: "14px",
+                                height: "14px",
+                                borderRadius: "50%",
+                                backgroundColor: status.color,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                fontSize: "10px",
+                                fontWeight: "bold",
+                                boxShadow: `0 0 8px ${status.color}40`
+                            }}>
+                                {status.icon}
+                            </div>
+                            <div style={{
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                color: value === status.id ? "var(--white-500)" : "var(--white-500)"
+                            }}>
+                                {status.name}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -572,136 +536,192 @@ function ManageCategoriesModal({ categories, onClose, onSave }: {
     return (
         <>
             <ModalContent>
-                <div style={{ padding: "16px" }}>
-                    <Forms.FormTitle style={{
-                        marginBottom: "16px",
-                        color: "var(--header-primary)",
-                        fontSize: "20px"
-                    }}>
-                        Manage Categories
+                <Forms.FormTitle tag="h2" style={{ marginBottom: "16px", color: "var(--white-500)" }}>
+                    Manage Categories
+                </Forms.FormTitle>
+
+                <div style={{
+                    background: "var(--background-secondary)",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    marginBottom: "16px",
+                    border: "2px solid var(--background-modifier-selected)"
+                }}>
+                    <Forms.FormTitle style={{ marginBottom: "12px", color: "var(--white-500)" }}>
+                        Add New Category
                     </Forms.FormTitle>
 
-                    <div style={{
-                        marginBottom: "16px",
-                        background: "var(--background-secondary)",
-                        padding: "16px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--background-modifier-accent)"
-                    }}>
-                        <Forms.FormTitle tag="h5" style={{ marginBottom: "8px" }}>
-                            Add New Category
-                        </Forms.FormTitle>
-
-                        <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "16px" }}>
-                            <TextInput
-                                placeholder="New category name"
-                                value={newCategory}
-                                onChange={setNewCategory}
-                                style={{ flexGrow: 1 }}
-                            />
-                            <Button
-                                onClick={addCategory}
-                                color={Button.Colors.BRAND}
-                                disabled={!newCategory.trim()}
-                            >
-                                Add
-                            </Button>
-                        </Flex>
-
-                        <Forms.FormText style={{ marginBottom: "0" }}>
-                            Categories help you organize your status messages and filter them when starting animations.
-                        </Forms.FormText>
-                    </div>
-
-                    <div style={{
-                        padding: "16px",
-                        background: "var(--background-secondary)",
-                        borderRadius: "8px",
-                        marginBottom: "16px",
-                        border: "1px solid var(--background-modifier-accent)"
-                    }}>
-                        <Forms.FormTitle tag="h5" style={{ margin: 0, marginBottom: "12px", color: "var(--header-primary)" }}>
-                            Current Categories
-                        </Forms.FormTitle>
-
-                        {localCategories.length === 0 ? (
-                            <Forms.FormText style={{
-                                fontStyle: "italic",
-                                color: "var(--text-muted)",
-                                textAlign: "center",
-                                padding: "16px",
-                                background: "var(--background-tertiary)",
-                                borderRadius: "8px"
-                            }}>
-                                No categories defined yet. Add some using the field above.
-                            </Forms.FormText>
-                        ) : (
-                            <div style={{
-                                maxHeight: "300px",
-                                overflowY: "auto",
-                                background: "var(--background-tertiary)",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                msOverflowStyle: "none",
-                                scrollbarWidth: "none"
-                            }} className="hide-scrollbar">
-                                <style>{`
-                                    .hide-scrollbar::-webkit-scrollbar {
-                                        display: none;
-                                    }
-                                `}</style>
-                                {localCategories.map(category => (
-                                    <Flex key={category} align={Flex.Align.CENTER} style={{
-                                        padding: "10px 12px",
-                                        margin: "4px 0",
-                                        background: "var(--background-secondary-alt)",
-                                        borderRadius: "6px",
-                                        justifyContent: "space-between",
-                                        border: "1px solid var(--background-tertiary)"
-                                    }}>
-                                        <div style={{
-                                            fontWeight: 600,
-                                            textTransform: "capitalize",
-                                            color: "var(--header-secondary)",
-                                            fontSize: "14px"
-                                        }}>
-                                            {category}
-                                        </div>
-                                        <Button
-                                            size={Button.Sizes.SMALL}
-                                            color={Button.Colors.RED}
-                                            onClick={() => removeCategory(category)}
-                                            style={{ padding: "4px 8px", minWidth: "unset" }}
-                                        >
-                                            Remove
-                                        </Button>
-                                    </Flex>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <Forms.FormText style={{ marginBottom: "16px", color: "var(--text-muted)" }}>
-                        Tip: Categories will be automatically created when you add a status with a new category.
-                    </Forms.FormText>
-
-                    <Flex style={{ gap: "8px", marginTop: "16px", justifyContent: "flex-end" }}>
+                    <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "12px" }}>
+                        <TextInput
+                            placeholder="Enter category name"
+                            value={newCategory}
+                            onChange={setNewCategory}
+                            onKeyDown={(e: React.KeyboardEvent) => {
+                                if (e.key === "Enter") {
+                                    addCategory();
+                                }
+                            }}
+                            style={{ flexGrow: 1 }}
+                        />
                         <Button
-                            onClick={onClose}
-                            color={Button.Colors.PRIMARY}
-                            style={{ fontWeight: 500 }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={() => onSave(localCategories)}
+                            onClick={addCategory}
                             color={Button.Colors.BRAND}
-                            style={{ fontWeight: 500 }}
+                            disabled={!newCategory.trim()}
                         >
-                            Save Categories
+                            Add
                         </Button>
                     </Flex>
+
+                    <div style={{
+                        background: "var(--background-tertiary)",
+                        padding: "8px 12px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--background-modifier-accent)",
+                        color: "var(--text-muted)",
+                        fontSize: "12px"
+                    }}>
+                        Categories help organize your status messages
+                    </div>
                 </div>
+
+                <div style={{
+                    background: "var(--background-secondary)",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    border: "2px solid var(--background-modifier-selected)"
+                }}>
+                    <Forms.FormTitle style={{ marginBottom: "12px", color: "var(--white-500)" }}>
+                        Current Categories ({localCategories.length})
+                    </Forms.FormTitle>
+
+                    {localCategories.length === 0 ? (
+                        <div className="vc-animated-status-card" style={{
+                            textAlign: "center",
+                            padding: "32px",
+                            background: "var(--background-tertiary)",
+                            border: "2px dashed var(--background-modifier-accent)"
+                        }}>
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style={{ margin: "0 auto 16px", opacity: 0.5 }}>
+                                <path d="M10 4H4c-1.11 0-2 .89-2 2v3h2V6h4V4zm6 0v2h4v3h2V6c0-1.11-.89-2-2-2h-4zm-6 15H4v-3H2v3c0 1.11.89 2 2 2h4v-2zm6 0v2h4c1.11 0 2-.89 2-2v-3h-2v3h-4z" fill="var(--text-muted)" />
+                            </svg>
+                            <div style={{
+                                color: "var(--text-muted)",
+                                fontSize: "16px",
+                                fontWeight: 500,
+                                marginBottom: "8px"
+                            }}>
+                                No categories created yet
+                            </div>
+                            <div style={{
+                                color: "var(--text-muted)",
+                                fontSize: "14px",
+                                lineHeight: "1.4"
+                            }}>
+                                Create categories to organize your animated statuses by theme, mood, or activity.
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="vc-animated-status-scrollable" style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                            maxHeight: "300px",
+                            overflowY: "auto"
+                        }}>
+                            {localCategories.map((category, index) => (
+                                <div
+                                    key={category}
+                                    className="vc-animated-status-item"
+                                    style={{ marginBottom: 0 }}
+                                >
+                                    <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "16px" }}>
+                                        <div style={{
+                                            width: "32px",
+                                            height: "32px",
+                                            borderRadius: "50%",
+                                            background: "var(--brand-experiment)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "var(--white-500)",
+                                            fontSize: "14px",
+                                            fontWeight: 700
+                                        }}>
+                                            {index + 1}
+                                        </div>
+                                        <div style={{ flexGrow: 1 }}>
+                                            <div style={{
+                                                color: "var(--white-500)",
+                                                fontSize: "16px",
+                                                fontWeight: 600,
+                                                textTransform: "capitalize"
+                                            }}>
+                                                {category}
+                                            </div>
+                                            <div style={{
+                                                color: "var(--text-muted)",
+                                                fontSize: "13px",
+                                                marginTop: "2px"
+                                            }}>
+                                                Category #{index + 1}
+                                            </div>
+                                        </div>
+                                        <Tooltip text="Delete Category">
+                                            {({ onMouseEnter, onMouseLeave }) => (
+                                                <Button
+                                                    className="vc-animated-status-button danger"
+                                                    size={Button.Sizes.SMALL}
+                                                    color={Button.Colors.RED}
+                                                    onClick={() => removeCategory(category)}
+                                                    onMouseEnter={onMouseEnter}
+                                                    onMouseLeave={onMouseLeave}
+                                                    style={{ padding: "8px 12px", minWidth: "unset" }}
+                                                >
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                                                    </svg>
+                                                </Button>
+                                            )}
+                                        </Tooltip>
+                                    </Flex>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div style={{
+                    background: "var(--background-tertiary)",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--background-modifier-accent)",
+                    color: "var(--text-muted)",
+                    fontSize: "13px",
+                    lineHeight: "1.4",
+                    marginBottom: "20px"
+                }}>
+                    💡 Tip: Categories will be automatically created when you add a status with a new category.
+                </div>
+
+                <Flex style={{ gap: "12px", justifyContent: "flex-end" }}>
+                    <Button
+                        className="vc-animated-status-button secondary"
+                        onClick={onClose}
+                        color={Button.Colors.PRIMARY}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className="vc-animated-status-button primary"
+                        onClick={() => onSave(localCategories)}
+                        color={Button.Colors.BRAND}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: "6px" }}>
+                            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" />
+                        </svg>
+                        Save Categories
+                    </Button>
+                </Flex>
             </ModalContent>
         </>
     );
@@ -853,12 +873,7 @@ function AnimatedStatusSettings() {
             e.currentTarget.style.transform = "translateY(-2px)";
         }
     };
-    const handleDragLeave = (e: React.DragEvent) => {
-        if (e.currentTarget instanceof HTMLElement) {
-            e.currentTarget.style.boxShadow = "";
-            e.currentTarget.style.transform = "";
-        }
-    };
+
     const handleDrop = (e: React.DragEvent, dropIndex: number) => {
         e.preventDefault();
         if (draggedIndex === null || draggedIndex === dropIndex) return;
@@ -916,7 +931,7 @@ function AnimatedStatusSettings() {
 
             if (plugin) {
                 plugin.stop?.();
-                const timeoutId = window.setTimeout(function () {
+                window.setTimeout(function () {
                     try {
                         const startPromise = plugin.startAnimation?.(activeCategory || undefined);
                         if (startPromise && typeof startPromise.then === "function") {
@@ -995,34 +1010,7 @@ function AnimatedStatusSettings() {
         });
     };
 
-    const handleAddPreset = (presetName: string, presetSteps: StatusStep[]) => {
-        const newSteps = presetSteps.filter(newStep =>
-            !animation.some(existing =>
-                existing.text === newStep.text &&
-                existing.category === newStep.category
-            )
-        );
 
-        if (newSteps.length === 0) {
-            Toasts.show({
-                message: "All preset statuses already exist",
-                type: Toasts.Type.FAILURE,
-                id: Toasts.genId()
-            });
-            return;
-        }
-
-        const newAnimation = [...animation, ...newSteps];
-        setAnimation(newAnimation);
-        settings.store.animation = JSON.stringify(newAnimation);
-        setActiveCategory(presetName);
-
-        Toasts.show({
-            message: `Added ${newSteps.length} statuses from "${presetName}" preset`,
-            type: Toasts.Type.SUCCESS,
-            id: Toasts.genId()
-        });
-    };
 
     const toggleAnimation = () => {
         const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as unknown as {
@@ -1060,7 +1048,28 @@ function AnimatedStatusSettings() {
 
     return (
         <div style={{ padding: "16px" }}>
-            <TabBar activeTab={activeTab} onChange={setActiveTab} />
+            <div style={{
+                display: "flex",
+                marginBottom: "20px",
+                borderBottom: "2px solid var(--background-modifier-selected)"
+            }}>
+                {["Messages", "Settings"].map(tab => (
+                    <div
+                        key={tab}
+                        style={{
+                            padding: "12px 16px",
+                            cursor: "pointer",
+                            borderBottom: activeTab === tab ? "3px solid var(--brand-experiment)" : "3px solid transparent",
+                            color: "var(--white-500)",
+                            fontWeight: activeTab === tab ? 700 : 500,
+                            background: activeTab === tab ? "var(--background-modifier-selected)" : "transparent"
+                        }}
+                        onClick={() => setActiveTab(tab)}
+                    >
+                        {tab}
+                    </div>
+                ))}
+            </div>
 
             {activeTab === "Messages" ? (
                 <>
@@ -1069,173 +1078,153 @@ function AnimatedStatusSettings() {
                         padding: "16px",
                         borderRadius: "8px",
                         marginBottom: "16px",
-                        border: "1px solid var(--background-modifier-accent)",
-                        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)"
+                        border: "2px solid var(--background-modifier-selected)"
                     }}>
                         <Forms.FormTitle style={{
-                            color: "var(--header-primary)",
+                            color: "var(--white-500)",
                             marginBottom: "16px",
-                            fontSize: "16px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px"
+                            fontSize: "16px"
                         }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor" />
-                            </svg>
                             Add New Status
                         </Forms.FormTitle>
-                        <div style={{
-                            background: "var(--background-tertiary)",
-                            padding: "16px",
-                            borderRadius: "8px",
-                            marginBottom: "16px"
-                        }}>
-                            {previewStatus && <StatusPreview status={previewStatus} label="Preview" />}
+                        {previewStatus && <StatusPreview status={previewStatus} label="Preview" />}
 
-                            <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "8px" }}>
-                                <TextInput
-                                    placeholder="Type your status message (can include emoji)"
-                                    value={newStatus}
-                                    onChange={setNewStatus}
-                                    style={{
-                                        flexGrow: 1,
-                                        background: "var(--background-secondary)"
-                                    }}
-                                />
-                                <Button
-                                    size={Button.Sizes.MEDIUM}
-                                    onClick={handleAdd}
-                                    disabled={!newStatus.trim()}
-                                    color={Button.Colors.BRAND}
-                                    style={{ fontWeight: 600 }}
-                                >
-                                    Add
-                                </Button>
-                            </Flex>
+                        <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "8px" }}>
+                            <TextInput
+                                placeholder="Type your status message (can include emoji)"
+                                value={newStatus}
+                                onChange={setNewStatus}
+                                style={{ flexGrow: 1 }}
+                            />
+                            <Button
+                                size={Button.Sizes.MEDIUM}
+                                onClick={handleAdd}
+                                disabled={!newStatus.trim()}
+                                color={Button.Colors.BRAND}
+                            >
+                                Add
+                            </Button>
+                        </Flex>
 
-                            <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "16px" }}>
-                                <TextInput
-                                    placeholder="Category (optional)"
-                                    value={newCategory}
-                                    onChange={setNewCategory}
-                                    style={{
-                                        flexGrow: 1,
-                                        background: "var(--background-secondary)"
-                                    }}
-                                />
-                                <Button
-                                    size={Button.Sizes.MEDIUM}
-                                    onClick={() => {
-                                        openModal(props => (
-                                            <ModalRoot {...props} size={ModalSize.MEDIUM}>
-                                                <ManageCategoriesModal
-                                                    categories={categories}
-                                                    onClose={props.onClose}
-                                                    onSave={newCategories => {
-                                                        setCategories(newCategories);
-                                                        props.onClose();
-                                                        Toasts.show({
-                                                            message: "Categories updated successfully!",
-                                                            type: Toasts.Type.SUCCESS,
-                                                            id: Toasts.genId()
-                                                        });
-                                                    }}
-                                                />
-                                            </ModalRoot>
-                                        ));
-                                    }}
-                                    color={Button.Colors.PRIMARY}
-                                    style={{ fontWeight: 600 }}
-                                >
-                                    Manage Categories
-                                </Button>
-                            </Flex>
-
-                            <div style={{
-                                background: "var(--background-secondary)",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                marginBottom: "12px"
-                            }}>
-                                <StatusSelector value={selectedStatus} onChange={setSelectedStatus} />
-                            </div>
-                        </div>
-
-                        <div style={{
-                            background: "var(--background-tertiary)",
-                            padding: "12px 16px",
-                            borderRadius: "8px",
-                            border: "1px solid var(--background-modifier-accent)"
-                        }}>
-                            <Flex
-                                align={Flex.Align.CENTER}
-                                justify={Flex.Justify.BETWEEN}
-                                style={{
-                                    cursor: "pointer",
-                                    userSelect: "none",
-                                }}
+                        <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "16px" }}>
+                            <TextInput
+                                placeholder="Category (optional)"
+                                value={newCategory}
+                                onChange={setNewCategory}
+                                style={{ flexGrow: 1 }}
+                            />
+                            <Button
+                                size={Button.Sizes.MEDIUM}
                                 onClick={() => {
-                                    const collapsible = document.getElementById("emoji-guide-collapsible");
-                                    const arrow = document.getElementById("emoji-guide-arrow");
-                                    if (collapsible) {
-                                        const isCurrentlyExpanded = collapsible.style.maxHeight !== "0px" && collapsible.style.maxHeight !== "";
-                                        collapsible.style.maxHeight = isCurrentlyExpanded ? "0px" : "300px";
-                                        collapsible.style.opacity = isCurrentlyExpanded ? "0" : "1";
-                                        collapsible.style.marginTop = isCurrentlyExpanded ? "0px" : "12px";
-                                        collapsible.style.transform = isCurrentlyExpanded ? "translateY(-10px)" : "translateY(0)";
+                                    openModal(props => (
+                                        <ModalRoot {...props} size={ModalSize.MEDIUM}>
+                                            <ManageCategoriesModal
+                                                categories={categories}
+                                                onClose={props.onClose}
+                                                onSave={newCategories => {
+                                                    setCategories(newCategories);
+                                                    props.onClose();
+                                                    Toasts.show({
+                                                        message: "Categories updated successfully!",
+                                                        type: Toasts.Type.SUCCESS,
+                                                        id: Toasts.genId()
+                                                    });
+                                                }}
+                                            />
+                                        </ModalRoot>
+                                    ));
+                                }}
+                                color={Button.Colors.PRIMARY}
+                            >
+                                Manage Categories
+                            </Button>
+                        </Flex>
 
-                                        if (arrow) {
-                                            arrow.style.transform = isCurrentlyExpanded ? "rotate(0deg)" : "rotate(180deg)";
-                                            arrow.style.color = isCurrentlyExpanded ? "var(--interactive-normal)" : "var(--text-link)";
-                                        }
+                        <StatusSelector value={selectedStatus} onChange={setSelectedStatus} />
+                    </div>
+
+                    <div style={{
+                        background: "var(--background-tertiary)",
+                        padding: "12px 16px",
+                        borderRadius: "8px",
+                        border: "2px solid var(--background-modifier-selected)"
+                    }}>
+                        <Flex
+                            align={Flex.Align.CENTER}
+                            justify={Flex.Justify.BETWEEN}
+                            style={{
+                                cursor: "pointer",
+                                userSelect: "none",
+                            }}
+                            onClick={() => {
+                                const collapsible = document.getElementById("emoji-guide-collapsible");
+                                const arrow = document.getElementById("emoji-guide-arrow");
+                                if (collapsible) {
+                                    const isCurrentlyExpanded = collapsible.style.maxHeight !== "0px" && collapsible.style.maxHeight !== "";
+                                    collapsible.style.maxHeight = isCurrentlyExpanded ? "0px" : "300px";
+                                    collapsible.style.opacity = isCurrentlyExpanded ? "0" : "1";
+                                    collapsible.style.marginTop = isCurrentlyExpanded ? "0px" : "12px";
+                                    collapsible.style.transform = isCurrentlyExpanded ? "translateY(-10px)" : "translateY(0)";
+
+                                    if (arrow) {
+                                        arrow.style.transform = isCurrentlyExpanded ? "rotate(0deg)" : "rotate(180deg)";
+                                        arrow.style.color = isCurrentlyExpanded ? "var(--interactive-normal)" : "var(--text-link)";
                                     }
-                                }}
-                            >
-                                <Forms.FormTitle tag="h5" style={{
-                                    marginBottom: "0",
-                                    fontSize: "13px",
-                                    color: "var(--header-secondary)"
-                                }}>
-                                    EMOJI GUIDE
-                                </Forms.FormTitle>
-                                <div style={{
-                                    fontSize: "16px",
-                                    color: "var(--interactive-normal)",
-                                    transform: "rotate(0deg)",
-                                    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                }} id="emoji-guide-arrow">▼</div>
-                            </Flex>
-                            <div
-                                id="emoji-guide-collapsible"
-                                style={{
-                                    maxHeight: "0px",
-                                    overflow: "hidden",
-                                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                    opacity: 0,
-                                    marginTop: "0px",
-                                    transform: "translateY(-10px)"
-                                }}
-                            >
-                                <Forms.FormText style={{ marginBottom: "8px", marginTop: "12px" }}>
-                                    • <span style={{ fontWeight: 600, color: "var(--header-secondary)" }}>Regular emoji:</span>
-                                    <span style={{ color: "var(--text-normal)" }}> Use emoji picker (Win + .) or copy from elsewhere</span>
-                                </Forms.FormText>
-                                <Forms.FormText style={{ marginBottom: "8px" }}>
-                                    • <span style={{ fontWeight: 600, color: "var(--header-secondary)" }}>Discord/Nitro emoji:</span>
-                                    <span style={{ color: "var(--text-normal)" }}> Use the emoji picker in Discord chat or type <code>\</code> (backslash) followed by the emoji name</span>
-                                </Forms.FormText>
-                                <Forms.FormText style={{ marginBottom: "8px" }}>
-                                    • <span style={{ fontWeight: 600, color: "var(--header-secondary)" }}>Custom emoji format:</span>
-                                    <span style={{ color: "var(--text-normal)" }}> <code>&lt;:emojiname:123456789&gt;</code> (Replace with actual emoji ID)</span>
-                                </Forms.FormText>
-                                <Forms.FormText>
-                                    • <span style={{ color: "var(--text-positive)" }}>Tip:</span>
-                                    <span style={{ color: "var(--text-normal)" }}> Right-click any emoji in Discord and select "Copy Emoji ID" to get its ID</span>
-                                </Forms.FormText>
-                            </div>
+                                }
+                            }}
+                        >
+                            <Forms.FormTitle tag="h5" style={{
+                                marginBottom: "0",
+                                fontSize: "13px",
+                                color: "var(--white-500)"
+                            }}>
+                                EMOJI GUIDE
+                            </Forms.FormTitle>
+                            <div style={{
+                                fontSize: "16px",
+                                color: "var(--interactive-normal)",
+                                transform: "rotate(0deg)",
+                                transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                            }} id="emoji-guide-arrow">▼</div>
+                        </Flex>
+                        <div
+                            id="emoji-guide-collapsible"
+                            style={{
+                                maxHeight: "0px",
+                                overflow: "hidden",
+                                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                opacity: 0,
+                                marginTop: "0px",
+                                transform: "translateY(-10px)"
+                            }}
+                        >
+                            <Forms.FormText style={{ marginBottom: "8px", marginTop: "12px" }}>
+                                • <span style={{ fontWeight: 600, color: "var(--header-secondary)" }}>Regular emoji:</span>
+                                <span style={{ color: "var(--text-normal)" }}> Use emoji picker (Win + .) or copy from elsewhere</span>
+                            </Forms.FormText>
+                            <Forms.FormText style={{ marginBottom: "8px" }}>
+                                • <span style={{ fontWeight: 600, color: "var(--header-secondary)" }}>Discord/Nitro emoji:</span>
+                                <span style={{ color: "var(--text-normal)" }}> Use the emoji picker in Discord chat or type <code>\</code> (backslash) followed by the emoji name</span>
+                            </Forms.FormText>
+                            <Forms.FormText style={{ marginBottom: "8px" }}>
+                                • <span style={{ fontWeight: 600, color: "var(--header-secondary)" }}>Custom emoji format:</span>
+                                <span style={{ color: "var(--text-normal)" }}> <code>&lt;:emojiname:123456789&gt;</code> (Replace with actual emoji ID)</span>
+                            </Forms.FormText>
+                            <Forms.FormText>
+                                • <span style={{ color: "var(--text-positive)" }}>Tip:</span>
+                                <span style={{ color: "var(--text-normal)" }}> Right-click any emoji in Discord and select "Copy Emoji ID" to get its ID</span>
+                            </Forms.FormText>
                         </div>
                     </div>
+
+                    {categories.length > 0 && (
+                        <CategorySelector
+                            categories={categories}
+                            activeCategory={activeCategory}
+                            onCategoryChange={setActiveCategory}
+                        />
+                    )}
+
                     {isRunning && currentStatus && (
                         <div style={{
                             background: "var(--background-secondary)",
@@ -1397,7 +1386,8 @@ function AnimatedStatusSettings() {
                                 marginBottom: "16px",
                                 background: "var(--background-tertiary)",
                                 padding: "12px",
-                                borderRadius: "8px"
+                                borderRadius: "8px",
+                                border: "2px solid var(--background-modifier-selected)"
                             }}>
                                 <CategorySelector
                                     categories={categories}
@@ -1443,6 +1433,7 @@ function AnimatedStatusSettings() {
                                 background: "var(--background-tertiary)",
                                 padding: "8px",
                                 borderRadius: "8px",
+                                border: "2px solid var(--background-modifier-selected)",
                                 msOverflowStyle: "none",
                                 scrollbarWidth: "none"
                             }} className="hide-scrollbar">
@@ -1493,7 +1484,8 @@ function AnimatedStatusSettings() {
                 <div style={{
                     background: "var(--background-secondary)",
                     padding: "16px",
-                    borderRadius: "8px"
+                    borderRadius: "8px",
+                    border: "2px solid var(--background-modifier-selected)"
                 }}>
                     <Flex direction={Flex.Direction.VERTICAL} style={{ gap: "16px" }}>
                         <div>
@@ -1890,124 +1882,56 @@ function StatusIcon() {
     );
 }
 
-function TabBar({ activeTab, onChange }: { activeTab: string; onChange: (tab: string) => void; }) {
-    return (
-        <Flex style={{
-            marginBottom: "24px",
-            background: "var(--background-tertiary)",
-            borderRadius: "12px",
-            padding: "6px",
-            border: "1px solid var(--background-modifier-accent)",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-            position: "relative",
-            overflow: "hidden"
-        }}>
-            {["Messages", "Settings"].map(tab => {
-                const isActive = activeTab === tab;
-                return (
-                    <div
-                        key={tab}
-                        onClick={() => onChange(tab)}
-                        style={{
-                            padding: "10px 20px",
-                            cursor: "pointer",
-                            borderRadius: "8px",
-                            color: isActive ? "var(--header-primary)" : "var(--text-muted)",
-                            fontWeight: isActive ? 600 : 400,
-                            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                            flex: 1,
-                            textAlign: "center",
-                            background: isActive ? "var(--brand-experiment-30a)" : "transparent",
-                            position: "relative",
-                            zIndex: 1,
-                            transform: isActive ? "scale(1.02)" : "scale(1)",
-                            boxShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 0.1)" : "none",
-                            border: isActive ? "1px solid var(--brand-experiment-30a)" : "1px solid transparent"
-                        }}
-                        onMouseEnter={e => {
-                            if (!isActive) {
-                                e.currentTarget.style.background = "var(--background-modifier-hover)";
-                                e.currentTarget.style.transform = "scale(1.01)";
-                                e.currentTarget.style.color = "var(--interactive-hover)";
-                                e.currentTarget.style.border = "1px solid var(--background-modifier-accent)";
-                            }
-                        }}
-                        onMouseLeave={e => {
-                            if (!isActive) {
-                                e.currentTarget.style.background = "transparent";
-                                e.currentTarget.style.transform = "scale(1)";
-                                e.currentTarget.style.color = "var(--text-muted)";
-                                e.currentTarget.style.border = "1px solid transparent";
-                            }
-                        }}
-                    >
-                        {tab}
-                    </div>
-                );
-            })}
-        </Flex>
-    );
-}
 
-
-const HeaderBarIcon = findComponentByCodeLazy(".HEADER_BAR_BADGE_TOP:", '.iconBadge,"top"');
-
-function StatusPopoutButton() {
-    const [show, setShow] = useState(false);
-
-    const handleClick = () => {
-        const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as unknown as {
-            stop?: () => void;
-            startAnimation?: (category?: string) => Promise<void>;
-        };
-
-        if (statusInterval) {
-            plugin.stop?.();
-        } else {
-            openModal(props => (
-                <ModalRoot {...props} size={ModalSize.MEDIUM}>
-                    <ModalContent>
-                        <AnimatedStatusSettings />
-                    </ModalContent>
-                </ModalRoot>
-            ));
-        }
-    };
-
-    return (
-        <HeaderBarIcon
-            className="animated-status-btn"
-            onClick={handleClick}
-            tooltip={statusInterval ? "Stop Animation" : "Animated Status Settings"}
-            icon={() => StatusPopoutIcon(show)}
-            selected={statusInterval ? true : false}
-        />
-    );
-}
-
-function StatusPopoutIcon(isShown: boolean) {
+function AnimatedStatusButton() {
     const isRunning = !!statusInterval;
-    const className = isRunning
-        ? "animated-status-icon animated-status-icon-spinning animated-status-active"
-        : "animated-status-icon";
 
     return (
-        <svg width="24" height="24" viewBox="0 0 24 24" className={className}>
-            <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 5.524 4.477 10 10 10s10-4.476 10-10c0-5.523-4.477-10-10-10zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z" />
-        </svg>
+        <Tooltip text={isRunning ? "Stop Animation" : "Animated Status Settings"}>
+            {({ onMouseEnter, onMouseLeave }) => (
+                <div
+                    className="vc-animated-status-account-btn"
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
+                    onClick={() => {
+                        if (isRunning) {
+                            const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as unknown as {
+                                stop?: () => void;
+                                startAnimation?: (category?: string) => Promise<void>;
+                            };
+                            plugin?.stop?.();
+                        } else {
+                            openModal(props => (
+                                <ModalRoot {...props} size={ModalSize.MEDIUM}>
+                                    <ModalContent>
+                                        <AnimatedStatusSettings />
+                                    </ModalContent>
+                                </ModalRoot>
+                            ));
+                        }
+                    }}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        color: isRunning ? "var(--text-positive)" : "var(--interactive-normal)",
+                        backgroundColor: isRunning ? "var(--background-modifier-selected)" : "transparent",
+                        transition: "all 0.2s ease"
+                    }}
+                    data-running={isRunning}
+                >
+                    <StatusIcon />
+                </div>
+            )}
+        </Tooltip>
     );
 }
 
-function AnimatedStatusFragmentWrapper({ children }: { children: ReactNode[]; }) {
-    children.splice(
-        children.length - 1, 0,
-        <ErrorBoundary noop={true}>
-            <StatusPopoutButton />
-        </ErrorBoundary>
-    );
 
-    return <>{children}</>;
-}
 
 export default definePlugin({
     name: "AnimatedStatus",
@@ -2085,17 +2009,15 @@ export default definePlugin({
     ),
     patches: [
         {
-            find: "toolbar:function",
+            find: "#{intl::ACCOUNT_SPEAKING_WHILE_MUTED}",
             replacement: {
-                match: /(?<=toolbar:function.{0,100}\()\i.Fragment,/,
-                replace: "$self.AnimatedStatusFragmentWrapper,"
+                match: /className:\i\.buttons,.{0,50}children:\[/,
+                replace: "$&$self.AnimatedStatusButton(),"
             }
         }
     ],
 
-    AnimatedStatusFragmentWrapper: ErrorBoundary.wrap(AnimatedStatusFragmentWrapper, {
-        fallback: () => null
-    }),
+    AnimatedStatusButton: ErrorBoundary.wrap(AnimatedStatusButton, { noop: true }),
 
     StatusIcon,
 
@@ -2220,9 +2142,8 @@ export default definePlugin({
             </ModalRoot>
         ));
     },
-    async setStatus(statusObj) {
+    async setStatus(statusObj: any) {
         try {
-            const { status } = window.DiscordNative.userDataCache.getCached();
             if (!CustomStatus) {
                 logger.error("Failed to get CustomStatus setting");
                 return { success: false, error: "CustomStatus setting not available" };

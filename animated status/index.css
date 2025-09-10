@@ -1,19 +1,19 @@
-.animated-status-btn,
-.animated-status-icon {
+.vc-animated-status-account-btn {
     -webkit-app-region: no-drag;
     position: relative;
 }
 
-.animated-status-icon {
-    color: var(--interactive-normal);
+.vc-animated-status-account-btn:hover {
+    background-color: var(--background-modifier-hover) !important;
+    color: var(--interactive-hover) !important;
 }
 
-.animated-status-btn[class*="selected"] .animated-status-icon {
-    color: var(--interactive-active);
+.vc-animated-status-account-btn[data-running="true"] {
+    color: var(--text-positive) !important;
 }
 
-.animated-status-btn:hover .animated-status-icon {
-    color: var(--interactive-hover);
+.vc-animated-status-account-btn[data-running="true"]:hover {
+    background-color: var(--background-modifier-selected) !important;
 }
 
 @keyframes spin {
@@ -32,4 +32,83 @@
 
 .animated-status-active {
     color: var(--text-positive);
+}
+
+.vc-animated-status-card {
+    background: var(--background-secondary);
+    border: 2px solid var(--background-modifier-selected);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.vc-animated-status-item {
+    background: var(--background-tertiary);
+    border: 2px solid var(--background-modifier-selected);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: grab;
+}
+
+.vc-animated-status-item:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-hover);
+}
+
+.vc-animated-status-item:active {
+    cursor: grabbing;
+}
+
+.vc-animated-status-item.dragging {
+    opacity: 0.5;
+}
+
+.vc-animated-status-category-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: var(--background-secondary);
+    border: 2px solid var(--background-modifier-selected);
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    margin: 2px;
+}
+
+.vc-animated-status-category-pill:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-hover);
+}
+
+.vc-animated-status-category-pill.active {
+    background: var(--brand-experiment);
+    color: var(--white-500);
+    border-color: var(--brand-experiment);
+}
+
+.vc-animated-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+.vc-animated-status-indicator.online {
+    color: var(--green-360);
+}
+
+.vc-animated-status-indicator.idle {
+    color: var(--yellow-360);
+}
+
+.vc-animated-status-indicator.dnd {
+    color: var(--red-400);
+}
+
+.vc-animated-status-indicator.invisible {
+    color: var(--text-muted);
 }
