@@ -29,16 +29,9 @@ I'm a shit coder, so ignore the shit code. If you’ve got any improvements, ope
 
 ---
 
-## Notes
-
-- The plugin is still in development, so expect some bugs and unfinished features.
-- The plugin is not compatible with the VencordToolbox plugin (we use the same patcher, so yeah).
-
----
-
 ## Usage
 
-Changed now  check the Mute & Deafen area  
+(update) Changed now  check the Mute & Deafen area  
 
 ![placement](https://raw.githubusercontent.com/shxdes69/vencord-animated-Status/main/screenshots/Preview5.png)
 
@@ -52,42 +45,17 @@ Changed now  check the Mute & Deafen area
 Vencord isn't modular, so you'll need to build from source to add custom plugins.  
 Check out this guide to get started: [https://docs.vencord.dev/installing/custom-plugins/](https://docs.vencord.dev/installing/custom-plugins/)
 
----
 
-### One-liner Install Commands (choose based on your shell):
-
-**Bash (Linux/macOS/git-bash):**
-```bash
-git clone -n --depth=1 --filter=tree:0 https://github.com/shxdes69/vencord-animated-Status && cd vencord-animated-Status && git sparse-checkout set "animated status" --no-cone && git checkout
-```
-
-**PowerShell (Windows):**
-```powershell
-git clone -n --depth=1 --filter=tree:0 https://github.com/shxdes69/vencord-animated-Status; Set-Location vencord-animated-Status; git sparse-checkout init --no-cone; git sparse-checkout set "animated status"; git checkout
-```
-
----
-
-### Manual Install
+### Installation
 1. Open your terminal and go to the `src/userplugins` folder (create it if it doesn't exist):
    ```bash
    cd src/userplugins
    ```
 2. Clone this repository:
    ```bash
-   git clone https://github.com/shxdes69/vencord-animated-Status
+   git clone https://github.com/shxdes69/vencord-animated-Status/tree/main/animated%20status
    ```
-3. Rebuild Vencord following the instructions in the documentation.
-
----
-
-### How to Update the Plugin
-To grab the latest features and bug fixes:
-```bash
-cd src/userplugins/vencord-animated-Status
-git pull
-```
-Then rebuild Vencord as needed.
+3. Rebuild Vencord following the instructions in the documentation.(pnpm build then pnpm inject)
 
 ---
 
