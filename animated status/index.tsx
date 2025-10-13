@@ -9,12 +9,9 @@ import "./index.css";
 import { definePluginSettings } from "@api/Settings";
 import { getUserSettingLazy } from "@api/UserSettings";
 import ErrorBoundary from "@components/ErrorBoundary";
-import { Logger } from "@utils/Logger";
 import { ModalContent, ModalRoot, ModalSize, openModal } from "@utils/modal";
 import definePlugin, { OptionType } from "@utils/types";
 import { Button, Flex, Forms, IconUtils, Menu, Popout, React, Slider, Switch, TextInput, Toasts, Tooltip, UserStore } from "@webpack/common";
-
-const logger = new Logger("AnimatedStatus");
 
 const CustomStatus = getUserSettingLazy<Partial<{
     text: string;
@@ -30,6 +27,7 @@ interface StatusStep {
     text: string;
     emoji_name?: string;
     emoji_id?: string;
+    animated?: boolean;
     category?: string;
     status?: "online" | "idle" | "dnd" | "invisible";
 }
@@ -39,8 +37,7 @@ function safeParseJSON(jsonString: string, fallback: StatusStep[] = []): StatusS
     try {
         const parsed = JSON.parse(jsonString);
         return Array.isArray(parsed) ? parsed : fallback;
-    } catch (err) {
-        logger.error(`Failed to parse animation settings: ${err}`);
+    } catch {
         return fallback;
     }
 }
@@ -135,7 +132,7 @@ function StatusPreview({ status, label }: { status: StatusStep | null; label?: s
                             <span style={{ fontSize: "16px" }}>
                                 {status.emoji_id ? (
                                     <img
-                                        src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.png`}
+                                        src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.${status.animated ? "gif" : "png"}`}
                                         alt={status.emoji_name}
                                         style={{ width: "16px", height: "16px", verticalAlign: "middle" }}
                                     />
@@ -255,7 +252,7 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
                         opacity: 0.6,
                         transition: "opacity 0.2s ease"
                     }}>
-                        ⋮⋮
+                        :::
                     </div>
                     {status.emoji_name && (
                         <div style={{
@@ -272,7 +269,7 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
                         }}>
                             {status.emoji_id ? (
                                 <img
-                                    src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.png`}
+                                    src={`https://cdn.discordapp.com/emojis/${status.emoji_id}.${status.animated ? "gif" : "png"}`}
                                     alt={status.emoji_name}
                                     style={{ width: "28px", height: "28px" }}
                                 />
@@ -700,7 +697,7 @@ function ManageCategoriesModal({ categories, onClose, onSave }: {
                     lineHeight: "1.4",
                     marginBottom: "20px"
                 }}>
-                    💡 Tip: Categories will be automatically created when you add a status with a new category.
+                    Tip: Categories will be automatically created when you add a status with a new category.
                 </div>
 
                 <Flex style={{ gap: "12px", justifyContent: "flex-end" }}>
@@ -796,16 +793,17 @@ function AnimatedStatusSettings() {
             return;
         }
         const cleanInput = newStatus.replace(/^\\/, "");
-        const emojiMatch = cleanInput.match(/<:([^:]+):(\d+)>/);
+        const emojiMatch = cleanInput.match(/<a?:([^:]+):(\d+)>/);
         const preview: StatusStep = {
             text: cleanInput,
             status: selectedStatus
         };
 
         if (emojiMatch) {
+            preview.animated = cleanInput.includes("<a:");
             preview.emoji_name = emojiMatch[1];
             preview.emoji_id = emojiMatch[2];
-            preview.text = preview.text.replace(/<:[^:]+:\d+>/, "").trim();
+            preview.text = preview.text.replace(/<a?:[^:]+:\d+>/, "").trim();
         }
 
         setPreviewStatus(preview);
@@ -939,15 +937,11 @@ function AnimatedStatusSettings() {
                                 if (filteredAnimation.length > 0) {
                                     setCurrentStatus(filteredAnimation[0]);
                                 }
-                            }).catch(error => {
-                                logger.error(`Failed to restart animation after category change: ${error}`);
-                            });
+                            }).catch(() => { });
                         } else if (filteredAnimation.length > 0) {
                             setCurrentStatus(filteredAnimation[0]);
                         }
-                    } catch (error) {
-                        logger.error(`Error restarting animation: ${error}`);
-                    }
+                    } catch { }
                 }, 100);
             }
         }
@@ -974,7 +968,7 @@ function AnimatedStatusSettings() {
     const handleAdd = () => {
         if (!newStatus.trim()) return;
         const cleanInput = newStatus.replace(/^\\/, "");
-        const emojiMatch = cleanInput.match(/<:([^:]+):(\d+)>/);
+        const emojiMatch = cleanInput.match(/<a?:([^:]+):(\d+)>/);
         const newStep: StatusStep = {
             text: cleanInput,
             category: newCategory.trim() ? newCategory.trim().toLowerCase() : undefined,
@@ -982,9 +976,10 @@ function AnimatedStatusSettings() {
         };
 
         if (emojiMatch) {
+            newStep.animated = cleanInput.includes("<a:");
             newStep.emoji_name = emojiMatch[1];
             newStep.emoji_id = emojiMatch[2];
-            newStep.text = newStep.text.replace(/<:[^:]+:\d+>/, "").trim();
+            newStep.text = newStep.text.replace(/<a?:[^:]+:\d+>/, "").trim();
         }
 
         const newAnimation = [...animation, newStep];
@@ -1017,10 +1012,7 @@ function AnimatedStatusSettings() {
             stop?: () => void;
             startAnimation?: (category?: string) => Promise<void>;
         };
-        if (!plugin) {
-            logger.error("Could not find AnimatedStatus plugin!");
-            return;
-        }
+        if (!plugin) return;
 
         if (isRunning) {
             plugin.stop?.();
@@ -1033,15 +1025,11 @@ function AnimatedStatusSettings() {
                         if (filteredAnimation.length > 0) {
                             setCurrentStatus(filteredAnimation[0]);
                         }
-                    }).catch(error => {
-                        logger.error(`Failed to start animation: ${error}`);
-                    });
+                    }).catch(() => { });
                 } else if (filteredAnimation.length > 0) {
                     setCurrentStatus(filteredAnimation[0]);
                 }
-            } catch (error) {
-                logger.error(`Error starting animation: ${error}`);
-            }
+            } catch { }
         }
         setIsRunning(!isRunning);
     };
@@ -2028,18 +2016,14 @@ export default definePlugin({
     start() {
         if (settings.store.autoStart) {
             setTimeout(() => {
-                this.startAnimation().catch(err => {
-                    logger.error(`Failed to auto-start animation: ${err}`);
-                });
+                this.startAnimation().catch(() => { });
             }, 3000);
-            logger.info("Auto-starting animation (3s delay)");
         }
     },
     stop() {
         if (statusInterval) {
             clearInterval(statusInterval as NodeJS.Timeout);
             statusInterval = null;
-            logger.info("Status animation stopped, current status preserved");
         }
     },
     async startAnimation(category?: string) {
@@ -2079,44 +2063,31 @@ export default definePlugin({
                     await this.setStatus(filteredAnimation[0]);
                     initialSetSuccess = true;
                     break;
-                } catch (error) {
-                    logger.warn(`Failed to set initial status (attempt ${retry + 1}): ${error}`);
-                    if (retry === 2) throw error;
+                } catch {
+                    if (retry === 2) throw new Error("Failed to set initial status");
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
 
-            if (!initialSetSuccess) {
-                throw new Error("Failed to set initial status after multiple attempts");
-            }
-
-            const categoryMsg = category ? ` in category "${category}"` : "";
-            logger.info(`Animation started with ${filteredAnimation.length} status messages${categoryMsg}`);
+            if (!initialSetSuccess) throw new Error("Failed to set initial status after multiple attempts");
 
             const intervalTime = Math.max(settings.store.timeout * 1000, 5000);
             statusInterval = setInterval(() => {
                 try {
-                    logger.debug("Interval triggered, updating status...");
-                    this.updateStatus(category).catch(e => {
-                        logger.error(`Error in interval update: ${e}`);
-                    });
-                } catch (e) {
-                    logger.error(`Fatal error in animation interval: ${e}`);
+                    this.updateStatus(category).catch(() => { });
+                } catch {
                     if (statusInterval) {
                         clearInterval(statusInterval);
                         statusInterval = null;
                     }
                 }
             }, intervalTime);
-
-            logger.info(`Status interval set to ${intervalTime} ms`);
             Toasts.show({
                 message: "Status animation started!",
                 type: Toasts.Type.SUCCESS,
                 id: Toasts.genId()
             });
-        } catch (err) {
-            logger.error(`Failed to start animation: ${err}`);
+        } catch {
             Toasts.show({
                 message: "Failed to start status animation",
                 type: Toasts.Type.FAILURE,
@@ -2144,10 +2115,7 @@ export default definePlugin({
     },
     async setStatus(statusObj: any) {
         try {
-            if (!CustomStatus) {
-                logger.error("Failed to get CustomStatus setting");
-                return { success: false, error: "CustomStatus setting not available" };
-            }
+            if (!CustomStatus) return { success: false, error: "CustomStatus setting not available" };
 
             let emojiId = statusObj.emoji_id?.toString() || "0";
             if (emojiId === "") emojiId = "0";
@@ -2166,45 +2134,31 @@ export default definePlugin({
             if (statusObj.status && StatusSetting) {
                 try {
                     await StatusSetting.updateSetting(statusObj.status);
-                    logger.info(`Changed status type to: ${statusObj.status}`);
-                } catch (statusError) {
-                    logger.error(`Failed to update status type: ${statusError}`);
-                }
+                } catch { }
             }
 
             return { success: true };
         } catch (err) {
-            logger.error(`Error when setting status: ${err}`);
             return { success: false, error: err };
         }
     },
     async updateStatus(category?: string) {
         try {
-            if (Date.now() - (this._lastUpdateTime || 0) < 2000) {
-                logger.debug("Throttling status update - too frequent");
-                return;
-            }
+            if (Date.now() - (this._lastUpdateTime || 0) < 2000) return;
             this._lastUpdateTime = Date.now();
 
             const animation = safeParseJSON(settings.store.animation);
-
-            const filteredAnimation = category
-                ? animation.filter(step => step.category === category)
-                : animation;
+            const filteredAnimation = category ? animation.filter(step => step.category === category) : animation;
 
             if (filteredAnimation.length === 0) {
                 if (statusInterval) {
                     clearInterval(statusInterval);
                     statusInterval = null;
-                    logger.warn("Animation stopped - no status messages found");
                 }
                 return;
             }
 
-            const nextIndex = settings.store.randomize
-                ? Math.floor(Math.random() * filteredAnimation.length)
-                : (currentIndex + 1) % filteredAnimation.length;
-
+            const nextIndex = settings.store.randomize ? Math.floor(Math.random() * filteredAnimation.length) : (currentIndex + 1) % filteredAnimation.length;
             currentIndex = nextIndex;
 
             let retries = 3;
@@ -2212,27 +2166,17 @@ export default definePlugin({
                 try {
                     await this.setStatus(filteredAnimation[currentIndex]);
                     break;
-                } catch (err) {
+                } catch {
                     retries--;
-
-                    if (retries <= 0) {
-                        logger.error(`Failed to update status after multiple attempts: ${err}`);
-                        throw err;
-                    }
-
-                    logger.warn(`Status update failed, retrying (${retries} attempts left): ${err}`);
-
+                    if (retries <= 0) throw new Error("Failed to update status");
                     await new Promise(resolve => setTimeout(resolve, (4 - retries) * 500));
                 }
             }
-        } catch (err) {
-            logger.error(`Failed to update status: ${err}`);
-
+        } catch {
             if (statusInterval) {
                 clearInterval(statusInterval as NodeJS.Timeout);
                 statusInterval = null;
             }
-
             Toasts.show({
                 message: "Status animation stopped due to an error",
                 type: Toasts.Type.FAILURE,
@@ -2246,18 +2190,13 @@ export default definePlugin({
         const intervalTime = Math.max(newTimeout * 1000, 5000);
         statusInterval = setInterval(() => {
             try {
-                this.updateStatus().catch(e => {
-                    logger.error(`Error in interval update: ${e}`);
-                });
-            } catch (e) {
-                logger.error(`Fatal error in animation interval: ${e}`);
+                this.updateStatus().catch(() => { });
+            } catch {
                 if (statusInterval) {
                     clearInterval(statusInterval);
                     statusInterval = null;
                 }
             }
         }, intervalTime);
-
-        logger.info(`Updated animation interval to ${intervalTime}ms without restarting`);
     }
 });
