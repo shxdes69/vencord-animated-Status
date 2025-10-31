@@ -53,7 +53,7 @@ Check out this guide to get started: [https://docs.vencord.dev/installing/custom
    ```
 2. Clone this repository:
    ```bash
-   git clone https://github.com/shxdes69/vencord-animated-Status/tree/main/animated%20status
+   Remove-Item -Recurse -Force "vencord-animated-status" -ErrorAction SilentlyContinue; mkdir "vencord-animated-status"; git clone --no-checkout https://github.com/shxdes69/vencord-animated-Status temp; cd temp; git sparse-checkout init --cone; git sparse-checkout set "animated status"; git checkout; Move-Item "animated status/*" "../vencord-animated-status/" -Force; cd ..; Remove-Item -Recurse -Force temp
    ```
 3. Rebuild Vencord following the instructions in the documentation.(pnpm build then pnpm inject)
 
