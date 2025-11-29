@@ -8,10 +8,13 @@ import "./index.css";
 
 import { definePluginSettings } from "@api/Settings";
 import { getUserSettingLazy } from "@api/UserSettings";
+import { Divider } from "@components/Divider";
 import ErrorBoundary from "@components/ErrorBoundary";
+import { Flex } from "@components/Flex";
+import { Switch } from "@components/Switch";
 import { ModalContent, ModalRoot, ModalSize, openModal } from "@utils/modal";
 import definePlugin, { OptionType } from "@utils/types";
-import { Button, Flex, Forms, IconUtils, Menu, Popout, React, Slider, Switch, TextInput, Toasts, Tooltip, UserStore } from "@webpack/common";
+import { Button, Forms, IconUtils, React, Slider, TextInput, Toasts, Tooltip, UserStore } from "@webpack/common";
 
 const CustomStatus = getUserSettingLazy<Partial<{
     text: string;
@@ -87,7 +90,7 @@ function StatusPreview({ status, label }: { status: StatusStep | null; label?: s
                     {label}
                 </div>
             )}
-            <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px" }}>
+            <Flex flexDirection="row" alignItems="center" style={{ gap: "12px" }}>
                 <div style={{ position: "relative" }}>
                     <img
                         src={avatarURL}
@@ -195,7 +198,7 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
 
     return (
         <div
-            className={`vc-animated-status-item ${draggedIndex === index ? 'dragging' : ''}`}
+            className={`vc-animated-status-item ${draggedIndex === index ? "dragging" : ""}`}
             draggable={!isEditing}
             onDragStart={e => onDragStart(e, index)}
             onDragEnd={onDragEnd}
@@ -224,7 +227,7 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
                         />
                         <StatusSelector value={editStatus} onChange={setEditStatus} />
                     </div>
-                    <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "12px", justifyContent: "flex-end" }}>
+                    <Flex flexDirection="row" style={{ gap: "12px", justifyContent: "flex-end" }}>
                         <Button
                             className="vc-animated-status-button secondary"
                             size={Button.Sizes.SMALL}
@@ -244,7 +247,7 @@ function StatusCard({ status, onDelete, onEdit, index, onDragStart, onDragEnd, o
                     </Flex>
                 </div>
             ) : (
-                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "16px", padding: "4px" }}>
+                <Flex flexDirection="row" alignItems="center" style={{ gap: "16px", padding: "4px" }}>
                     <div style={{
                         fontSize: "18px",
                         color: "var(--interactive-normal)",
@@ -378,7 +381,7 @@ function CategorySelector({
                 alignItems: "center"
             }}>
                 <div
-                    className={`vc-animated-status-category-pill ${activeCategory === null ? 'active' : ''}`}
+                    className={`vc-animated-status-category-pill ${activeCategory === null ? "active" : ""}`}
                     onClick={() => onCategoryChange(null)}
                     style={{ cursor: "pointer" }}
                 >
@@ -390,7 +393,7 @@ function CategorySelector({
                 {categories.map(category => (
                     <div
                         key={category}
-                        className={`vc-animated-status-category-pill ${activeCategory === category ? 'active' : ''}`}
+                        className={`vc-animated-status-category-pill ${activeCategory === category ? "active" : ""}`}
                         onClick={() => onCategoryChange(category)}
                         style={{ cursor: "pointer" }}
                     >
@@ -452,7 +455,7 @@ function StatusSelector({ value, onChange }: {
                 {statuses.map(status => (
                     <div
                         key={status.id}
-                        className={`vc-animated-status-indicator ${status.id} ${value === status.id ? 'active' : ''}`}
+                        className={`vc-animated-status-indicator ${status.id} ${value === status.id ? "active" : ""}`}
                         onClick={() => onChange(status.id as "online" | "idle" | "dnd" | "invisible")}
                         style={{
                             cursor: "pointer",
@@ -548,7 +551,7 @@ function ManageCategoriesModal({ categories, onClose, onSave }: {
                         Add New Category
                     </Forms.FormTitle>
 
-                    <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "12px" }}>
+                    <Flex flexDirection="row" style={{ gap: "8px", marginBottom: "12px" }}>
                         <TextInput
                             placeholder="Enter category name"
                             value={newCategory}
@@ -631,7 +634,7 @@ function ManageCategoriesModal({ categories, onClose, onSave }: {
                                     className="vc-animated-status-item"
                                     style={{ marginBottom: 0 }}
                                 >
-                                    <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "16px" }}>
+                                    <Flex flexDirection="row" alignItems="center" style={{ gap: "16px" }}>
                                         <div style={{
                                             width: "32px",
                                             height: "32px",
@@ -1077,7 +1080,7 @@ function AnimatedStatusSettings() {
                         </Forms.FormTitle>
                         {previewStatus && <StatusPreview status={previewStatus} label="Preview" />}
 
-                        <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "8px" }}>
+                        <Flex flexDirection="row" style={{ gap: "8px", marginBottom: "8px" }}>
                             <TextInput
                                 placeholder="Type your status message (can include emoji)"
                                 value={newStatus}
@@ -1094,7 +1097,7 @@ function AnimatedStatusSettings() {
                             </Button>
                         </Flex>
 
-                        <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "8px", marginBottom: "16px" }}>
+                        <Flex flexDirection="row" style={{ gap: "8px", marginBottom: "16px" }}>
                             <TextInput
                                 placeholder="Category (optional)"
                                 value={newCategory}
@@ -1106,19 +1109,21 @@ function AnimatedStatusSettings() {
                                 onClick={() => {
                                     openModal(props => (
                                         <ModalRoot {...props} size={ModalSize.MEDIUM}>
-                                            <ManageCategoriesModal
-                                                categories={categories}
-                                                onClose={props.onClose}
-                                                onSave={newCategories => {
-                                                    setCategories(newCategories);
-                                                    props.onClose();
-                                                    Toasts.show({
-                                                        message: "Categories updated successfully!",
-                                                        type: Toasts.Type.SUCCESS,
-                                                        id: Toasts.genId()
-                                                    });
-                                                }}
-                                            />
+                                            <ModalContent>
+                                                <ManageCategoriesModal
+                                                    categories={categories}
+                                                    onClose={props.onClose}
+                                                    onSave={newCategories => {
+                                                        setCategories(newCategories);
+                                                        props.onClose();
+                                                        Toasts.show({
+                                                            message: "Categories updated successfully!",
+                                                            type: Toasts.Type.SUCCESS,
+                                                            id: Toasts.genId()
+                                                        });
+                                                    }}
+                                                />
+                                            </ModalContent>
                                         </ModalRoot>
                                     ));
                                 }}
@@ -1138,8 +1143,8 @@ function AnimatedStatusSettings() {
                         border: "2px solid var(--background-modifier-selected)"
                     }}>
                         <Flex
-                            align={Flex.Align.CENTER}
-                            justify={Flex.Justify.BETWEEN}
+                            alignItems="center"
+                            justifyContent="space-between"
                             style={{
                                 cursor: "pointer",
                                 userSelect: "none",
@@ -1242,7 +1247,7 @@ function AnimatedStatusSettings() {
                                 borderRadius: "8px",
                                 border: "1px solid var(--background-modifier-accent)"
                             }}>
-                                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "12px", marginBottom: "12px" }}>
+                                <Flex flexDirection="row" alignItems="center" style={{ gap: "12px", marginBottom: "12px" }}>
                                     <div style={{
                                         width: "40px",
                                         height: "40px",
@@ -1268,7 +1273,7 @@ function AnimatedStatusSettings() {
                                             {UserStore.getCurrentUser()?.username || "User"}
                                         </div>
 
-                                        <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ gap: "8px" }}>
+                                        <Flex flexDirection="row" alignItems="center" style={{ gap: "8px" }}>
                                             {currentStatus.emoji_name && (
                                                 <div style={{
                                                     fontSize: "16px",
@@ -1322,7 +1327,7 @@ function AnimatedStatusSettings() {
                         border: "1px solid var(--background-modifier-accent)",
                         boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)"
                     }}>
-                        <Flex justify={Flex.Justify.BETWEEN} align={Flex.Align.CENTER} style={{
+                        <Flex justifyContent="space-between" alignItems="center" style={{
                             marginBottom: "16px",
                             background: "var(--background-tertiary)",
                             padding: "12px 16px",
@@ -1475,7 +1480,7 @@ function AnimatedStatusSettings() {
                     borderRadius: "8px",
                     border: "2px solid var(--background-modifier-selected)"
                 }}>
-                    <Flex direction={Flex.Direction.VERTICAL} style={{ gap: "16px" }}>
+                    <Flex flexDirection="column" style={{ gap: "16px" }}>
                         <div>
                             <Forms.FormTitle>Animation Control</Forms.FormTitle>
                             <Button
@@ -1535,7 +1540,7 @@ function AnimatedStatusSettings() {
                                             color: "var(--text-muted)"
                                         }}>SLOWER (60s)</div>
                                     </div>
-                                    <Flex align={Flex.Align.CENTER} style={{
+                                    <Flex alignItems="center" style={{
                                         marginBottom: "12px",
                                         position: "relative"
                                     }}>
@@ -1727,7 +1732,7 @@ function AnimatedStatusSettings() {
                                         </div>
                                         <div>
                                             <Switch
-                                                value={randomize}
+                                                checked={randomize}
                                                 onChange={handleRandomizeChange}
                                                 style={{
                                                     transform: "scale(1.1)"
@@ -1761,7 +1766,7 @@ function AnimatedStatusSettings() {
                                         </div>
                                         <div>
                                             <Switch
-                                                value={autoStart}
+                                                checked={autoStart}
                                                 onChange={handleAutoStartChange}
                                                 style={{
                                                     transform: "scale(1.1)"
@@ -1774,7 +1779,7 @@ function AnimatedStatusSettings() {
                         </div>
 
                         <div style={{ marginTop: "8px" }}>
-                            <Forms.FormDivider style={{ marginBottom: "12px" }} />
+                            <Divider style={{ marginBottom: "12px" }} />
                             <Forms.FormTitle>Developer</Forms.FormTitle>
                             <div style={{
                                 background: "var(--background-tertiary)",
@@ -1782,7 +1787,7 @@ function AnimatedStatusSettings() {
                                 borderRadius: "8px",
                                 marginTop: "8px"
                             }}>
-                                <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER}>
+                                <Flex flexDirection="row" alignItems="center">
                                     <div style={{
                                         width: "32px",
                                         height: "32px",
@@ -1802,7 +1807,7 @@ function AnimatedStatusSettings() {
                                     </div>
                                     <div style={{ flexGrow: 1 }}>
                                         <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--text-normal)" }}>shxdes69</div>
-                                        <Flex direction={Flex.Direction.HORIZONTAL} style={{ gap: "12px", marginTop: "4px" }}>
+                                        <Flex flexDirection="row" style={{ gap: "12px", marginTop: "4px" }}>
                                             <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                                                 <span style={{ color: "var(--text-link)", cursor: "pointer" }}
                                                     onClick={e => {
@@ -1829,7 +1834,7 @@ function AnimatedStatusSettings() {
                     </Flex>
                 </div>
             )}
-        </div>
+        </div >
     );
 }
 
@@ -1939,7 +1944,7 @@ export default definePlugin({
     dependencies: ["UserSettingsAPI"],
     settingsPostComponent: () => (
         <div style={{ marginTop: "20px", padding: "20px", background: "var(--background-secondary)", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)" }}>
-            <Flex direction={Flex.Direction.HORIZONTAL} align={Flex.Align.CENTER} style={{ marginBottom: "12px" }}>
+            <Flex flexDirection="row" alignItems="center" style={{ marginBottom: "12px" }}>
                 <div style={{
                     width: "40px",
                     height: "40px",
@@ -1966,7 +1971,7 @@ export default definePlugin({
                 borderRadius: "8px",
                 border: "1px solid var(--background-modifier-accent)"
             }}>
-                <Flex direction={Flex.Direction.VERTICAL} style={{ gap: "10px" }}>
+                <Flex flexDirection="column" style={{ gap: "10px" }}>
                     <div>
                         <Forms.FormText>
                             <strong>Discord:</strong> <span style={{ color: "var(--text-link)" }}>shxdes0</span> <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>(ID: 705545572299571220)</span>
@@ -2200,3 +2205,4 @@ export default definePlugin({
         }, intervalTime);
     }
 });
+
