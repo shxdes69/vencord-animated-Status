@@ -12,11 +12,10 @@ import { Switch } from "@components/Switch";
 import { ModalCloseButton, ModalContent, ModalHeader, ModalRoot, ModalSize, openModal } from "@utils/modal";
 import { classNameFactory } from "@utils/css";
 import definePlugin, { OptionType } from "@utils/types";
+import { findComponentByCodeLazy } from "@webpack";
 import { Button, Forms, TextInput, Toasts, TabBar, Text, useEffect, useMemo, useRef, useState } from "@webpack/common";
 import { UserStore } from "@webpack/common";
-import { findComponentByCodeLazy } from "@webpack";
 
-const PanelBtn = findComponentByCodeLazy(".GREEN,positionKeyStemOverride:");
 const cl = classNameFactory("vc-as-");
 const MIN_INTERVAL = 5, MAX_INTERVAL = 300, DEFAULT_INTERVAL = 10, START_DELAY = 3000;
 const EMOJI_REGEX = /<a?:([^:]+):(\d+)>/;
@@ -75,20 +74,33 @@ const settings = definePluginSettings({
     autoStart: { type: OptionType.BOOLEAN, description: "Start automatically when Discord loads", default: false }
 });
 
+const UserAreaButton = findComponentByCodeLazy(".GREEN,positionKeyStemOverride:");
+
 const state = { currentIndex: 0, interval: null as NodeJS.Timeout | null, isRunning: false, _started: false };
+
+function AnimatedStatusButton() {
+    return (
+        <UserAreaButton
+            tooltipText={state.isRunning ? "Running - Click for settings" : "Animated Status - Click for settings"}
+            icon={I.Clock}
+            onClick={() => openModal(modalProps => <SettingsModal {...modalProps} />)}
+        />
+    );
+}
 
 export default definePlugin({
     name: "AnimatedStatus", description: "Cycle through status messages automatically", authors: [{ id: 705545572299571220n, name: "shxdes69" }], settings,
-    start() {
-        state._started = false;
-        if (settings.store.autoStart) {
-            setTimeout(() => this.begin().catch(() => {}), START_DELAY);
+    patches: [
+        {
+            find: ".DISPLAY_NAME_STYLES_COACHMARK),",
+            replacement: {
+                match: /children:\[(?=.{0,25}?accountContainerRef)/,
+                replace: "children:[$self.AnimatedStatusButton(arguments[0]),"
+            }
         }
-    },
-    stop() {
-        if (state.interval) clearInterval(state.interval);
-        state.currentIndex = 0; state.isRunning = false; state._started = true; this.forceUpdate();
-    },
+    ],
+    AnimatedStatusButton: ErrorBoundary.wrap(AnimatedStatusButton, { noop: true }),
+    _lastSignal: 0,
     async setStatus(step: StatusStep): Promise<boolean> {
         if (!CustomStatus) return false;
         try {
@@ -123,14 +135,15 @@ export default definePlugin({
     },
     forceUpdate() { this.buttonUpdateSignal = Date.now(); },
     buttonUpdateSignal: 0,
-    patches: [{ find: "#{intl::ACCOUNT_SPEAKING_WHILE_MUTED}", replacement: { match: /children:\[(?=.{0,25}?accountContainerRef)/, replace: "children:[$self.AccountButton(arguments[0])," } }],
-    _lastSignal: 0,
-    AccountButton: (props: any) => {
-        const [, setTick] = useState(0), running = state.isRunning;
-        useEffect(() => { const check = () => { const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as any; if (plugin && plugin._lastSignal !== plugin.buttonUpdateSignal) { plugin._lastSignal = plugin.buttonUpdateSignal; setTick(t => t + 1); } }; const id = setInterval(check, 100); return () => clearInterval(id); }, []);
-        const handleClick = () => openModal(modalProps => <SettingsModal {...modalProps} />);
-        const handleRightClick = (e: React.MouseEvent) => { e.preventDefault(); const plugin = window.Vencord?.Plugins?.plugins?.AnimatedStatus as any; if (running) plugin?.stop?.(); else plugin?.begin?.(); };
-        return <PanelBtn tooltipText={running ? "Running - Left-click: Settings | Right-click: Stop" : "Animated Status - Left-click: Settings | Right-click: Start"} icon={() => <svg width="20" height="20" viewBox="0 0 24 24" fill={running ? "var(--text-positive)" : "currentColor"}><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75 1.23-4.25-2.58V7z"/></svg>} onClick={handleClick} onContextMenu={handleRightClick} {...props} />;
+    start() {
+        state._started = false;
+        if (settings.store.autoStart) {
+            setTimeout(() => this.begin().catch(() => {}), START_DELAY);
+        }
+    },
+    stop() {
+        if (state.interval) clearInterval(state.interval);
+        state.currentIndex = 0; state.isRunning = false; state._started = true; this.forceUpdate();
     },
     getIsRunning: () => state.isRunning,
 });
@@ -594,7 +607,7 @@ function InfoTab() {
                 <Text className={cl("section-title")} variant="heading-md/bold">Presets</Text>
                 <Text className={cl("section-desc")} variant="text-md/normal">Create presets to organize your statuses. Add statuses to presets through the optional Preset field when adding/editing statuses in the Statuses tab. Click Run on a preset to cycle through all its statuses.</Text>
                 <Forms.FormDivider />
-                <Text className={cl("info-footer")} variant="text-xs/normal">Made by <a href="https://github.com/shxdes69" target="_blank" rel="noopener noreferrer" className={cl("highlight")}>shxdes69</a> • Ver 2</Text>
+                <Text className={cl("info-footer")} variant="text-xs/normal">Made by <a href="https://github.com/shxdes69" target="_blank" rel="noopener noreferrer" className={cl("highlight")}>shxdes69</a> • Ver 2.1</Text>
             </Forms.FormSection>
         </div>
     );
